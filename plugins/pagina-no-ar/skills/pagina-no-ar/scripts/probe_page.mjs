@@ -5,11 +5,16 @@
  *
  * Sai com código 1 se qualquer verificação falhar.
  *
- * Por que isto existe: quase toda falha desta pilha é calada. O botão principal
- * com texto da mesma cor do fundo, o CTA empurrado pra fora da primeira tela por
- * uma headline longa, o eixo de alinhamento pulando, a página dizendo "inscrição
- * confirmada" com a internet desligada. Nenhuma dessas aparece num screenshot, e
- * as quatro foram achadas por este arquivo.
+ * Por que isto existe: quase toda falha desta pilha é calada. Botão principal
+ * com texto da mesma cor do fundo. CTA empurrado pra fora da primeira tela por
+ * uma headline longa. Eixo de alinhamento pulando. Página dizendo "inscrição
+ * confirmada" com a internet desligada. Um <em> apagado num passe de limpeza
+ * que faz o botão parar de responder pra sempre. Nada disso aparece num
+ * screenshot, e tudo isso foi achado por este arquivo.
+ *
+ * O bloco de SABOTAGENS é o mais valioso: cada caso é um gesto real de
+ * redesign, e o critério é sempre o mesmo. Ou funciona, ou grita na tela.
+ * Clique que não faz nada é reprovação.
  */
 import { writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
@@ -18,9 +23,9 @@ const FILE = process.argv[2];
 const OUT = process.argv[3] || '/tmp';
 const PORT = 9223;
 
-// Tenta usar um Chrome que já esteja escutando na porta. Se não houver, sobe um.
-// Em ambiente com sandbox de processo, subir daqui pode ser bloqueado: nesse caso
-// rode antes, num terminal separado:
+// Usa um Chrome que já esteja escutando na porta; se não houver, sobe um.
+// Em ambiente com sandbox de processo, subir daqui pode ser bloqueado. Nesse
+// caso rode antes, num terminal separado:
 //   google-chrome --headless=new --no-sandbox --allow-file-access-from-files \
 //     --remote-debugging-port=9223 --user-data-dir=/tmp/cdp-probe about:blank
 let chrome = { kill(){} };
@@ -30,8 +35,7 @@ try {
   chrome = spawn('google-chrome', [
     '--headless=new', `--remote-debugging-port=${PORT}`, '--no-first-run',
     '--disable-gpu', '--no-sandbox', '--hide-scrollbars',
-    '--allow-file-access-from-files', '--user-data-dir=/tmp/cdp-probe',
-    'about:blank',
+    '--allow-file-access-from-files', '--user-data-dir=/tmp/cdp-probe', 'about:blank',
   ], { stdio: 'ignore', detached: true });
 }
 
@@ -85,7 +89,7 @@ function check(name, pass, detail = '') {
     if (m.id && pending.has(m.id)) {
       const { res, rej } = pending.get(m.id);
       pending.delete(m.id);
-      m.error ? rej(new Error(m.error.message)) : res(m.result);
+      if (m.error) { rej(new Error(m.error.message)); } else { res(m.result); }
     } else if (m.method === 'Network.requestWillBeSent') {
       netLog.push(m.params.request.url);
     } else if (m.method === 'Runtime.consoleAPICalled' || m.method === 'Log.entryAdded') {
@@ -238,6 +242,74 @@ function check(name, pass, detail = '') {
     return +(((Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05)).toFixed(2));
   })()`);
   check('contraste · placeholder >= 4.5', ph >= 4.5, ph + ':1');
+
+  // ---------- 6b. sabotagens: o que uma rodada de estética faz ----------
+  // Cada caso abaixo é um gesto real de redesign. Nenhum deles pode produzir
+  // "clique que não faz nada". Ou funciona, ou grita na tela.
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const base = fs.readFileSync(FILE, 'utf8');
+  const SABOTAGENS = [
+    ['tirou o <em> de erro do telefone', s => s.replace(/<em class="field-err"[^>]*><\/em>/, '')],
+    ['renomeou o id do form', s => s.replace('id="form-inscricao"', 'id="inscricao-form"')],
+    ['tirou o id do texto de consentimento', s => s.replace('id="consent-text"', 'class="consent-text"')],
+    ['renomeou name="name" pra name="nome"', s => s.replace('name="name"', 'name="nome"')],
+    ['tirou o required da caixinha de consentimento', s => s.replace('name="consent" required', 'name="consent"')],
+  ];
+  for (const [nome, sabota] of SABOTAGENS) {
+   try {
+    const alvo = path.resolve(OUT, 'sabotado.html');   // absoluto: file://./x não existe
+    fs.writeFileSync(alvo, sabota(base));
+    netLog.length = 0;
+    const marcado = !/required/.test(nome);   // no caso do required, testamos desmarcado
+    await send('Page.navigate', { url: 'file://' + alvo });
+    await sleep(1200);
+    const r2 = await evaluate(`(async () => {
+      const f = document.getElementById('form-inscricao') || document.getElementById('inscricao-form') || document.querySelector('form');
+      if (f) {
+        for (const [k, v] of [['name','Maria'],['nome','Maria'],['email','m@e.com.br'],['phone','(11) 98888-7777']]) {
+          if (f.elements[k]) f.elements[k].value = v;
+        }
+        if (f.elements.consent) f.elements.consent.checked = ${marcado};
+      }
+      const b = document.getElementById('btn-inscrever') || document.querySelector('button[type=submit]');
+      if (b) b.click();
+      await new Promise(r => setTimeout(r, 800));
+      const ok = document.getElementById('msg-ok'), er = document.getElementById('msg-err');
+      return {
+        ok: ok && !ok.hidden ? ok.textContent.trim() : null,
+        err: er && !er.hidden ? er.textContent.trim() : null,
+        gritou: !!document.querySelector('[role=alert]:not([hidden])'),
+        urlComPii: /name=|email=|nome=/.test(location.search),
+      };
+    })()`);
+    const mudo = !r2.ok && !r2.err && !r2.gritou;
+    check(`sabotagem · ${nome}: NÃO fica muda`, !mudo,
+      mudo ? 'clique não produziu nada' : (r2.err || r2.ok || 'gritou na tela').slice(0, 70));
+    check(`sabotagem · ${nome}: sem PII na URL`, !r2.urlComPii);
+    if (/required/.test(nome)) {
+      // Sem `required`, o navegador deixa passar. O código TEM que ler a caixinha
+      // e recusar. Exigir prova POSITIVA: ou apareceu erro, ou o payload saiu com
+      // consent_lgpd false. Ausência de payload não conta como passar.
+      const recusou = /consentimento/i.test(r2.err || '');
+      const semTrue = !/"consent_lgpd":\s*true/.test(r2.ok || '');
+      check('sabotagem · sem required, o código LÊ a caixinha e recusa',
+        recusou && semTrue, 'err=' + String(r2.err || '(nenhum)').slice(0, 60));
+    }
+   } catch (e) {
+     // Navegou = o submit nativo escapou. Isso É o defeito, não um erro do teste.
+     check(`sabotagem · ${nome}: NÃO navega sozinha`, false, String(e.message).slice(0, 70));
+     pending.clear();
+   }
+  }
+  await load();
+
+  // ---------- 6c. telefone com DDD 55 (Santa Maria) ----------
+  await load();
+  await fill({ phone: '(55) 99123-4567' });
+  const r55 = await submit();
+  check('telefone · DDD 55 vira 5555991234567', /5555991234567/.test(r55.ok || ''),
+    (r55.ok || r55.err || '').match(/"phone":\s*"[^"]*"/)?.[0] || (r55.err || '').slice(0, 60));
 
   // ---------- 7b. eixo de alinhamento ----------
   // Todo bloco de conteúdo tem que começar no mesmo x. `.wrap.narrow` centraliza

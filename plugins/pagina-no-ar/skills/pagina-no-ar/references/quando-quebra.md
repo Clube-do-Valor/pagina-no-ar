@@ -4,16 +4,15 @@ Leia no momento em que alguma coisa não funcionou: o formulário não gravou, a
 
 ## Primeiro: não saiu de primeira, e está tudo certo
 
-**O envio não sai na primeira tentativa.** Nos vídeos que serviram de pesquisa pra esta aula, isso
+**O envio não sai na primeira tentativa.** Nos vídeos que serviram de pesquisa pra esta aula isso
 aconteceu em **100% das ocorrências filmadas**: preenche o formulário, vai olhar o destino, não chegou
-nada. Na segunda tentativa chega. É por isso que o bloco do dado anuncia a falha antes dela acontecer.
-Isso é etapa, não é vergonha, e não é sinal de que você fez alguma coisa errada. Quem trava aqui trava
-por achar que é o único, e não é.
+nada. Na segunda tentativa chega, e é por isso que o bloco do dado anuncia a falha antes dela acontecer.
+Isso é etapa, não é vergonha e não é sinal de que você errou. Quem trava aqui trava achando que é o único.
 
 ## O gesto único: a página já te entrega o diagnóstico
 
-O template não engole erro. Quando o envio falha, aparece na tela uma caixa vermelha com o status cru,
-e esse número é o diagnóstico inteiro. O gesto é sempre o mesmo: copiar a linha e colar no chat.
+O template não engole erro: quando o envio falha, aparece uma caixa vermelha com o status cru, e esse
+número é o diagnóstico inteiro. O gesto é sempre o mesmo, copiar a linha e colar no chat.
 
 ```text
 Enviei o formulário e apareceu isto na tela:
@@ -21,15 +20,13 @@ HTTP 401 · {"code":"42501","message":"permission denied for table leads"}
 Diagnostica pelo status e me diz o que fazer. Não reescreve o formulário inteiro.
 ```
 
-A última frase não é frescura: sem ela, o modelo tende a reescrever o `<form>` pra "melhorar", e você
-troca um erro conhecido por três desconhecidos.
+A última frase evita que o modelo reescreva o `<form>` e troque um erro conhecido por três novos.
 
 ---
 
 ## Família 1 · o lado do Supabase (o HTML está intacto)
 
-Estas acontecem com o template **sem nenhuma alteração**. Não procure bug no seu HTML: o que falta
-está do lado do banco.
+Estas acontecem com o template **sem nenhuma alteração**. Não procure bug no HTML: falta coisa no banco.
 
 | Sintoma na tela | Status | Causa | Como detectar |
 |---|---|---|---|
@@ -41,13 +38,10 @@ está do lado do banco.
 | `PGRST204` insistindo numa coluna que **você acabou de criar** | 400 | cache de schema do PostgREST, ~30 segundos | espere 30s e tente de novo antes de mexer em qualquer coisa |
 
 RLS e GRANT são **dois cadeados diferentes**: a policy autoriza a linha, o grant autoriza o role a tocar
-na tabela. Sem grant, o Postgres nega antes de olhar a policy, e é por isso que os dois primeiros casos
-parecem iguais e têm conserto diferente.
+na tabela. Sem grant o Postgres nega antes de olhar a policy, e por isso os dois primeiros casos parecem
+iguais e têm conserto diferente.
 
-### As frases de conserto
-
-Falta grant, que é o mais comum em projeto criado em 2026. Cole inteiro, de uma vez, no SQL Editor do
-Supabase:
+**As frases de conserto.** Falta grant, o mais comum em projeto de 2026. Cole inteiro no SQL Editor:
 
 ```sql
 revoke all on table public.leads from anon;
@@ -92,8 +86,8 @@ com eles, sem mudar mais nada.
 
 Estas **não deveriam existir**, porque o template já vem com todas as proteções. Elas voltam quando um
 passe de design reescreve o HTML: a doc do impeccable diz que o build recompromete `inputs` e `buttons`
-no vocabulário da direção escolhida, então pedir "deixa essa seção mais bonita" pode levar embora o
-motor do formulário. Se você caiu numa destas, o suspeito é o refinamento visual, não o Supabase.
+no vocabulário da direção escolhida, então "deixa essa seção mais bonita" pode levar embora o motor do
+formulário. Se você caiu numa destas, o suspeito é o refinamento visual, não o Supabase.
 
 | Sintoma na tela | Status | Causa | Como detectar |
 |---|---|---|---|
@@ -105,7 +99,7 @@ motor do formulário. Se você caiu numa destas, o suspeito é o refinamento vis
 | Erro 400 com nome de constraint do Postgres ao desmarcar o consentimento | 400 | sumiu o `required` da caixinha. O `CHECK` do banco virou validação de formulário, que não é o papel dele | desmarque a caixinha: tem que dar mensagem em português **sem nenhuma requisição** na aba Network |
 | Erro 415 e o formulário parece normal | 415 | sumiu o `Content-Type: application/json`, ou o corpo parou de ser `JSON.stringify` | o corpo do erro fala em media type |
 
-### A frase de conserto, que é uma só
+**A frase de conserto, que é uma só:**
 
 ```text
 Uma rodada de visual levou embora parte do motor do formulário. Restaura, sem mexer no
@@ -116,8 +110,8 @@ Não manda created_at no corpo. Confirma também que o botão de submit está DE
 <form> com type="submit", e que a tag <script> do formulário não é type="module".
 ```
 
-E a prevenção, que custa uma linha: toda vez que pedir mudança visual na seção do formulário, mande
-junto `Mantém os name= e os id= do formulário e todo o bloco marcado INTOCÁVEL exatamente como está.`
+Prevenção: ao pedir mudança visual no formulário, mande junto `Mantém os name= e os id= do formulário e
+todo o bloco marcado INTOCÁVEL exatamente como está.`
 
 ---
 
@@ -130,13 +124,10 @@ junto `Mantém os name= e os id= do formulário e todo o bloco marcado INTOCÁVE
 | Divulgou a URL e ela abre página de terceiro | sem status | subdomínio `.vercel.app` é first-come-first-served. A Vercel resolveu a colisão com sufixo, **calada** | **copie a URL do resultado do comando**, nunca digite de memória |
 | A URL final ficou diferente da que você escolheu | sem status | nome com mais de 63 caracteres é truncado, e nome parecido com domínio (`www-clinica-com`) é reescrito pela proteção anti-phishing | compare o nome que você pediu com a URL que o comando imprimiu |
 | A raiz dá **404**, mas o caminho completo funciona | 404 | não existe `index.html` na raiz da pasta enviada | abra a URL pura, sem nada depois da barra |
-| A Vercel pergunta "Root (/)" durante o envio | sem status | ela **não achou** um `index.html`. A pergunta já é o diagnóstico | só aparece na lane do Drop |
-| A URL mostra código cru ou baixa um arquivo | sem status | o arquivo virou `index.html.txt` (Windows escondendo extensão). Só na lane de fallback | dois cliques no arquivo local: abre renderizado? |
+| A Vercel pergunta "Root (/)", ou a URL mostra código cru | sem status | ela **não achou** um `index.html` na raiz, ou o arquivo virou `index.html.txt` (Windows escondendo extensão). Só na lane do Drop | dois cliques no arquivo local: abre renderizado? |
 | Corrigiu a data, subiu de novo, e o anúncio segue na versão velha | sem status | **só na lane do Drop**: cada drop cria projeto novo, então existem duas páginas vivas | abra a URL **que está no anúncio** e conte os projetos no dashboard |
 
-### As frases de conserto
-
-Inject do `live` mode:
+**As frases de conserto.** Inject do `live` mode:
 
 ```text
 Roda grep -n 8400 no index.html. Se achar alguma coisa, remove o inject do live mode do
@@ -152,6 +143,15 @@ Publica em produção com vercel --prod e me mostra a URL que saiu no resultado 
 Se der 404 na raiz, confere antes se o arquivo se chama exatamente index.html e se ele
 está na raiz da pasta que subiu.
 ```
+
+URL colidida, quando você já divulgou o endereço errado:
+
+```text
+A URL que eu divulguei não é a minha. Roda vercel --prod, me mostra a URL exata do
+resultado, e me diz se pra ficar com um nome novo eu renomeio o projeto ou crio outro.
+```
+
+[CONFIRMAR: se renomear o projeto na Vercel muda a URL de produção, ou se o caminho é projeto novo. Item 7 do roteiro do ensaio de 13/08.]
 
 Lane do Drop com projeto duplicado:
 
@@ -171,9 +171,9 @@ lista de inscritos. Não existe sintoma. Nada avisa.
 Isso é nome, e-mail e telefone de pessoa física exposto, com anúncio rodando: é incidente de LGPD, não
 é bug de front. A verificação leva 10 segundos e é obrigatória antes de divulgar: abra a página
 publicada, dê `Ctrl+U` pra ver o código-fonte, ache a chave, e confirme que o rótulo de onde ela saiu
-no painel do Supabase era **publishable** (ou `anon`), nunca `service_role` nem `secret`. Se a errada
-já foi publicada, **rotacione em Project Settings → API antes de republicar**: trocar só no arquivo não
-resolve, porque a chave antiga continua valendo.
+no painel do Supabase era **publishable** (ou `anon`), nunca `service_role` nem `secret`. Se a errada já
+foi publicada, **rotacione em Project Settings → API antes de republicar**: trocar só no arquivo não
+resolve, a chave antiga continua valendo.
 
 ### A prova de que a chave publicável pode ficar no HTML
 
@@ -185,8 +185,7 @@ status e o corpo.
 Leitura do resultado:
 
 - erro com `42501`: os dois cadeados estão fechados. É o certo.
-- `200` com `[]`: a RLS segura, mas o grant de SELECT ficou aberto. Rode `revoke all` e o `grant insert`
-  de novo.
+- `200` com `[]`: a RLS segura, mas o grant de SELECT ficou aberto. Rode o `revoke all` e o `grant insert` de novo.
 - `200` com a lista de leads: **está vazando. Para tudo** e conserte antes de qualquer divulgação.
 
 [CONFIRMAR: se o status exato da negação é 401 ou 403 em cada operação. As duas leituras de pesquisa divergiram, e o código `42501` é o que é estável. Fica pro item 8 do ensaio de 13/08.]

@@ -27,6 +27,19 @@ def aviso(titulo, detalhe, conserto):
     AVISOS.append((titulo, detalhe, conserto))
 
 
+def valor(codigo: str, chave: str):
+    """
+    Lê `chave: '...'` ou `chave: "..."`.
+
+    Aceitar só aspas simples faz o gate falhar ABERTO: qualquer formatador, e o
+    próprio Claude metade das vezes, reescreve com aspas duplas, o regex não
+    casa, o campo vira "ausente" e o check some sem avisar. Gate que falha
+    aberto é pior que gate nenhum, porque dá sensação de conferido.
+    """
+    m = re.search(r"%s\s*:\s*(['\"])(.*?)\1" % re.escape(chave), codigo, re.S)
+    return None if m is None else m.group(2)
+
+
 def sem_comentarios(html: str) -> str:
     """
     Devolve o arquivo sem comentário nenhum.
@@ -108,15 +121,15 @@ def checar(caminho: Path) -> None:
             )
 
     # --- 4. a data, que é o entregável de 10 pontos --------------------------
-    m_data = re.search(r"data:\s*'([^']*)'", codigo)
-    m_hora = re.search(r"hora:\s*'([^']*)'", codigo)
-    if not m_data or not m_data.group(1).strip():
+    v_data = valor(codigo, "data")
+    v_hora = valor(codigo, "hora")
+    if not v_data or not v_data.strip():
         bloqueio(
             "sem data do webinário",
             "EVENTO.data está vazio",
             "preencha EVENTO.data. A semana 4 pontua data pública na página",
         )
-    if not m_hora or not m_hora.group(1).strip():
+    if not v_hora or not v_hora.strip():
         bloqueio(
             "sem hora do webinário",
             "EVENTO.hora está vazio",
@@ -146,9 +159,39 @@ def checar(caminho: Path) -> None:
             "Mandado do navegador, grava o relógio do visitante, que pode estar em 1970",
         )
 
+    # --- 5b. campo do form que não chega no payload --------------------------
+    # O payload é um objeto montado à mão. Um <input name="area"> novo entra no
+    # formulário, o lead responde, o Supabase devolve 201 e a resposta é jogada
+    # fora sem erro em lugar nenhum. Campo novo mexe em TRÊS lugares.
+    m_form = re.search(r"<form\b.*?</form>", codigo, re.S | re.I)
+    if m_form:
+        nomes = set(re.findall(r'name=["\']([^"\']+)["\']', m_form.group(0)))
+        nomes -= {"website", "consent"}          # honeypot e caixinha, tratados à parte
+        m_pay = re.search(r"const payload = \{(.*?)\n      \};", codigo, re.S)
+        chaves = set(re.findall(r"^\s*(\w+)\s*:", m_pay.group(1), re.M)) if m_pay else set()
+        # o form usa `phone`, o payload usa `phone`; o mapa é 1 pra 1 de propósito
+        orfaos = sorted(n for n in nomes if n not in chaves)
+        if orfaos:
+            bloqueio(
+                "campo no formulário que o payload joga fora",
+                "o <form> tem " + ", ".join('name="%s"' % o for o in orfaos)
+                + " e o payload não manda essa(s) chave(s)",
+                "campo novo entra em TRÊS lugares ou em nenhum: o name= do input, "
+                "o objeto payload no script, e um `alter table` na tabela. Só o "
+                "primeiro faz o lead responder e a resposta ir pro lixo, sem erro",
+            )
+
     # --- 6. destino configurado ----------------------------------------------
-    tem_supabase = bool(re.search(r"SUPABASE_URL:\s*'https://\S+'", codigo))
-    tem_webhook = bool(re.search(r"WEBHOOK_URL:\s*'https?://\S+'", codigo))
+    url_sb = (valor(codigo, "SUPABASE_URL") or "").strip()
+    key_sb = (valor(codigo, "SUPABASE_KEY") or "").strip()
+    tem_supabase = bool(url_sb and key_sb)
+    tem_webhook = bool((valor(codigo, "WEBHOOK_URL") or "").strip())
+    if bool(url_sb) != bool(key_sb):
+        bloqueio(
+            "configuração do Supabase pela metade",
+            "preencheu " + ("a URL mas não a chave" if url_sb else "a chave mas não a URL"),
+            "nesse estado a página NÃO grava lead nenhum. Complete o bloco CONFIG",
+        )
     if not tem_supabase and not tem_webhook:
         aviso(
             "nenhum destino configurado (degrau 0)",
@@ -158,9 +201,9 @@ def checar(caminho: Path) -> None:
         )
 
     # --- 7. WhatsApp em E.164 -------------------------------------------------
-    m_wpp = re.search(r"WHATSAPP:\s*'([^']*)'", codigo)
-    if m_wpp and m_wpp.group(1).strip():
-        num = m_wpp.group(1).strip()
+    v_wpp = valor(codigo, "WHATSAPP")
+    if v_wpp and v_wpp.strip():
+        num = v_wpp.strip()
         if not re.fullmatch(r"55\d{10,11}", num):
             bloqueio(
                 "WhatsApp fora do formato E.164",
@@ -168,6 +211,21 @@ def checar(caminho: Path) -> None:
                 "só dígitos, começando em 55. Ex.: 5511999999999. Com parêntese, "
                 "traço ou espaço o wa.me diz 'número inválido' e a página não acusa",
             )
+
+    # --- 7b. o cartão de visita da URL ---------------------------------------
+    if "<title>Inscrição no webinário</title>" in html:
+        aviso(
+            "o título da aba ainda é o neutro do template",
+            "<title>Inscrição no webinário</title>",
+            "troque pelo nome do seu webinário. É o que aparece na aba, no "
+            "resultado de busca e no link colado no WhatsApp",
+        )
+    if "og:image" not in html:
+        aviso(
+            "sem og:image",
+            "o link colado no WhatsApp e no Instagram vai sem miniatura",
+            "gere uma imagem 1200x630, suba junto e aponte uma <meta property=\"og:image\">",
+        )
 
     # --- 8. o arquivo tem que se chamar index.html ---------------------------
     if caminho.name != "index.html":

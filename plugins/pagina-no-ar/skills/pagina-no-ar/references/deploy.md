@@ -165,8 +165,6 @@ Três saídas, e escolher é seu:
 2. **Cloudflare Pages**, grátis e com uso comercial permitido, banda ilimitada. Mesmo gesto de arrastar a pasta, e o upload direto **atualiza o mesmo projeto**, então a URL fica estável sem precisar de GitHub. Tecnicamente é a melhor opção gratuita das três; o preço é um painel bem mais intimidante.
 3. **Netlify Drop**, grátis, e um novo drop na mesma área de Deploys **mantém a URL**. [CONFIRMAR: a permissão de uso comercial no free do Netlify vem de resposta da própria equipe no fórum oficial, não de página de termos. Se for repetir isso na aula, checar antes.]
 
-Migrar depois é barato: é o mesmo `index.html`. Ninguém precisa refazer nada.
-
 ---
 
 ## Lane de fallback · Vercel Drop, pra quem não tem Node

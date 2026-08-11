@@ -76,6 +76,28 @@ CASOS = [
      True, "created_at"),
     ("aviso sobre service_role no comentário NÃO pode bloquear",
      PRONTA, False, None),
+
+    # --- os que fazem o gate falhar ABERTO, que é pior que gate nenhum -------
+    ("whatsapp torto escrito com ASPAS DUPLAS",
+     PRONTA.replace("WHATSAPP: '5511988887777',", 'WHATSAPP: "(11) 98888-7777",'),
+     True, "E.164"),
+    ("data vazia escrita com ASPAS DUPLAS",
+     PRONTA.replace("data:     'Segunda, 25 de agosto',", 'data:     "",'),
+     True, "sem data"),
+    ("config do Supabase pela metade",
+     PRONTA.replace("SUPABASE_KEY:   'sb_publishable_aBcDeFgHiJkLmNoPqRs',", "SUPABASE_KEY:   '',"),
+     True, "pela metade"),
+
+    # --- campo novo no form que o payload joga fora --------------------------
+    ("campo novo só no <form>, sem entrar no payload",
+     PRONTA.replace('<label class="consent">',
+                    '<label class="f"><span>Área</span><input type="text" name="area"></label>\n        <label class="consent">'),
+     True, "joga fora"),
+    ("campo novo em form E payload NÃO bloqueia",
+     PRONTA.replace('<label class="consent">',
+                    '<label class="f"><span>Área</span><input type="text" name="area"></label>\n        <label class="consent">')
+           .replace("        source_url: location.origin", "        area: campo('area'),\n        source_url: location.origin"),
+     False, None),
 ]
 
 

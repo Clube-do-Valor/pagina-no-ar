@@ -32,12 +32,17 @@
   ============================================================================
 -->
 
-<title>[FALTA: título da página] · Webinário</title>
-<meta name="description" content="[FALTA: uma frase que descreve o webinário, até 155 caracteres]">
+<title>Inscrição no webinário</title>
+<meta name="description" content="Página de inscrição do webinário.">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="[FALTA: título da página]">
-<meta property="og:description" content="[FALTA: uma frase que descreve o webinário]">
+<meta property="og:title" content="Inscrição no webinário">
+<meta property="og:description" content="Página de inscrição do webinário.">
+<!-- Título, descrição e og: nascem neutros de propósito, e NÃO com [FALTA:].
+     Motivo: a página vai pro ar intocada no minuto 8 e essa URL já é a
+     definitiva, então ela vai pro grupo com a aba do navegador visível. Aba
+     escrita "[FALTA: título]" é o pior primeiro contato possível. Neutro
+     funciona; o check_page avisa (sem bloquear) pra você personalizar. -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -363,8 +368,15 @@ footer a { color: var(--signal); }
       </div>
     </div>
 
-    <!-- O bloco do evento. A data é o entregável da página, então ela mora
-         acima da dobra e não num rodapé. -->
+    <!-- INTOCÁVEL · FIAÇÃO DA DATA
+         Estilo pode mudar à vontade: cor, tamanho, moldura, posição, tudo.
+         O que NÃO pode sumir são os atributos `data-evento="..."`. É por eles
+         que o script escreve a data, a hora, a duração e a contagem. Um passe
+         de estética que reescreva este bloco sem eles deixa a página com o
+         texto de placeholder pra sempre, e a data pública é o entregável de
+         +10 pontos da semana 4.
+         Se você pedir pro Claude redesenhar esta parte, diga junto:
+         "mantenha os atributos data-evento". -->
     <div class="event">
       <p class="event-date" data-evento="data">[FALTA: data]</p>
       <p class="event-time" data-evento="hora">[FALTA: hora]</p>
@@ -469,7 +481,11 @@ footer a { color: var(--signal); }
       <h3>Inscrição</h3>
       <p>Leva menos de um minuto.</p>
 
-      <form id="form-inscricao" novalidate>
+      <!-- method="post" não é decoração. Sem ele o form é GET, e se o script
+             morrer por qualquer motivo o navegador navega sozinho colocando
+             NOME, E-MAIL E TELEFONE na barra de endereço, que vai parar no
+             histórico, no referrer e no log de quem hospeda. -->
+        <form id="form-inscricao" method="post" novalidate>
         <label class="f">
           <span>Nome</span>
           <input type="text" name="name" autocomplete="name" required maxlength="120" placeholder="Como você quer ser chamado">
@@ -501,6 +517,14 @@ footer a { color: var(--signal); }
 
         <div class="msg msg-err" id="msg-err" role="alert" hidden></div>
         <div class="msg msg-ok" id="msg-ok" role="status" hidden></div>
+
+        <!-- Os textos de confirmação moram AQUI, como HTML, e não dentro de uma
+             string do JavaScript. Motivo: o gate obriga você a editar este
+             texto, e um apóstrofo ("do Dall'agnol") dentro de aspas simples no
+             JS quebra o arquivo inteiro sem dar erro nenhum na tela. Em HTML,
+             apóstrofo é só apóstrofo. Escreva à vontade. -->
+        <template id="txt-sucesso">[FALTA: diga aqui o que acontece agora, logo depois da inscrição.]</template>
+        <template id="txt-sucesso-wpp">Te levando pro WhatsApp pra liberar o acesso...</template>
       </form>
     </div>
     <!-- ================= FIM DO INTOCÁVEL · FORMULÁRIO ================= -->
@@ -583,9 +607,9 @@ const EVENTO = {
 /* ===========================================================================
    INTOCÁVEL · MOTOR DO FORMULÁRIO
    ---------------------------------------------------------------------------
-   Três coisas aqui não são estilo, são o que separa "página que parece
-   funcionar" de "página que funciona". Se sumirem, o formulário passa a
-   mentir em silêncio:
+   Quatro coisas aqui não são estilo, são o que separa "página que parece
+   funcionar" de "página que funciona". Se sumirem, o formulário passa a mentir
+   em silêncio:
 
    1. e.preventDefault()   sem ele, o navegador navega, ABORTA o fetch no meio
                            do voo e recarrega a página. Banco vazio, e nada na
@@ -597,51 +621,130 @@ const EVENTO = {
                            sem isso o Supabase faz um SELECT de volta, leva 403
                            da policy de insert-only, e REVERTE a inserção
                            inteira. O dado some depois de ter entrado.
+   4. o guarda `pega()`    um elemento que some numa rodada de estética não pode
+                           matar o botão em silêncio. Tudo que é buscado no DOM
+                           passa por ele, e o que faltar vira erro NA TELA.
+
+   CAMPO NOVO NO FORMULÁRIO MEXE EM TRÊS LUGARES, OU EM NENHUM:
+     (a) o `name=` do <input> lá em cima
+     (b) o objeto `payload` aqui embaixo
+     (c) um `alter table` na tabela do Supabase
+   Fazer só (a) é o pior caso possível: o lead responde, o banco devolve 201, e
+   a resposta é jogada fora sem erro em lugar nenhum. O check_page.py compara
+   (a) com (b) e bloqueia, mas ele não enxerga (c).
    =========================================================================== */
 (function () {
   'use strict';
 
-  const form   = document.getElementById('form-inscricao');
-  const btn    = document.getElementById('btn-inscrever');
-  const msgErr = document.getElementById('msg-err');
-  const msgOk  = document.getElementById('msg-ok');
-  const errPhone = document.getElementById('err-phone');
+  // --- guarda de existência -------------------------------------------------
+  // Sem isto, tirar um único elemento (o <em> de erro do telefone parece lixo,
+  // e some no primeiro passe de limpeza) estoura TypeError ANTES do try/catch.
+  // Como o preventDefault já rodou, a página não navega e não avisa: o clique
+  // simplesmente para de fazer qualquer coisa, pra sempre, e o erro só existe
+  // no console que o não-técnico não abre.
+  const faltando = [];
+  function pega(id) {
+    const el = document.getElementById(id);
+    if (!el) faltando.push('#' + id);
+    return el;
+  }
 
-  // ---- 1. escreve os dados do evento na página -----------------------------
+  const form      = pega('form-inscricao');
+  const btn       = pega('btn-inscrever');
+  const msgErr    = pega('msg-err');
+  const msgOk     = pega('msg-ok');
+  const errPhone  = pega('err-phone');
+  const consentEl = pega('consent-text');
+  const txtOk     = pega('txt-sucesso');
+  const txtOkWpp  = pega('txt-sucesso-wpp');
+
+  function gritar(texto) {
+    const alvo = document.querySelector('.form-card') || document.body;
+    const aviso = document.createElement('p');
+    aviso.setAttribute('role', 'alert');
+    aviso.style.cssText = 'background:#FEF4F3;border:2px solid #B3261E;color:#7A1B15;'
+      + 'padding:1rem;margin:1rem 0;border-radius:3px;font:600 15px/1.5 system-ui';
+    aviso.textContent = texto;
+    alvo.prepend(aviso);
+  }
+
+  if (!form || !btn || !msgErr || !msgOk) {
+    gritar('O formulário está quebrado: sumiu ' + faltando.join(', ')
+      + '. Copie esta frase inteira e peça pro Claude restaurar o bloco INTOCÁVEL '
+      + 'do formulário no index.html.');
+    // E trava o submit nativo de QUALQUER form da página. Sem isto o navegador
+    // navega sozinho no primeiro clique, a página recarrega, o aviso vermelho
+    // some junto e o lead vai embora achando que enviou.
+    for (const f of document.querySelectorAll('form')) {
+      f.addEventListener('submit', function (ev) { ev.preventDefault(); });
+    }
+    return;
+  }
+
+  // --- 1. escreve os dados do evento na página -----------------------------
   for (const key of ['data', 'hora', 'duracao', 'fuso']) {
     if (!EVENTO[key]) continue;
     for (const el of document.querySelectorAll('[data-evento="' + key + '"]')) {
       el.textContent = EVENTO[key];
     }
   }
-  if (EVENTO.iso) {
-    const alvo = new Date(EVENTO.iso);
-    const dias = Math.ceil((alvo - new Date()) / 86400000);
-    const txt = dias > 1 ? 'faltam ' + dias + ' dias'
-              : dias === 1 ? 'é amanhã'
-              : dias === 0 ? 'é hoje' : '';
-    for (const el of document.querySelectorAll('[data-evento="contagem"]')) el.textContent = txt;
+
+  // Contagem por DIA DE CALENDÁRIO, no fuso que o próprio EVENTO.iso declara.
+  // A versão ingênua (dividir a diferença em milissegundos por 86400000) mede
+  // hora corrida, não dia, e erra justamente no dia do webinário: às 9h do dia
+  // 25 ela escreve "é amanhã". E arredondando pra cima, "é hoje" só apareceria
+  // depois do evento já ter começado.
+  function diasDeCalendarioAte(iso) {
+    const alvo = new Date(iso);
+    if (isNaN(alvo.getTime())) return null;
+    const m = String(iso).match(/([+-])(\d{2}):?(\d{2})\s*$/);
+    const offsetMin = m
+      ? (m[1] === '-' ? -1 : 1) * (parseInt(m[2], 10) * 60 + parseInt(m[3], 10))
+      : -180;                                   // sem offset no iso, assume Brasília
+    const diaLocal = d => Math.floor((d.getTime() + offsetMin * 60000) / 86400000);
+    return diaLocal(alvo) - diaLocal(new Date());
   }
 
-  // ---- 2. normalização do telefone ----------------------------------------
+  if (EVENTO.iso) {
+    const dias = diasDeCalendarioAte(EVENTO.iso);
+    const txt = dias === null ? ''
+      : dias > 1  ? 'faltam ' + dias + ' dias'
+      : dias === 1 ? 'é amanhã'
+      : dias === 0 ? 'é hoje'
+      : '';
+    for (const el of document.querySelectorAll('[data-evento="contagem"]')) {
+      el.textContent = txt;
+    }
+  }
+
+  // --- 2. normalização do telefone -----------------------------------------
   // O WhatsApp só aceita E.164 com dígitos puros. "(11) 99999-9999" com
   // parêntese, traço ou espaço faz o wa.me dizer "número inválido", e a página
-  // não registra nada de errado. Então a normalização é obrigatória, e é ela
-  // que vira a ÚNICA chave de ligação entre o lead e a conversa depois.
+  // não registra nada de errado. Essa normalização vira a ÚNICA chave de
+  // ligação entre o lead e a conversa depois.
   function normalizarTelefone(bruto) {
-    let d = String(bruto || '').replace(/\D/g, '');
+    let d = String(bruto == null ? '' : bruto).replace(/\D/g, '');
     if (d.startsWith('00')) d = d.slice(2);
-    if (!d.startsWith('55')) d = '55' + d;
+    // Decidir por TAMANHO, nunca por "começa com 55". Santa Maria tem DDD 55,
+    // e (55) 99123-4567 vira 55991234567, que começa com 55 e mesmo assim está
+    // faltando o código do país. Nacional é 10 ou 11 dígitos; com o 55 na
+    // frente é 12 ou 13.
+    if (d.length === 10 || d.length === 11) d = '55' + d;
     return d;
   }
   function telefoneValido(d) {
-    // 55 + DDD (2) + 8 ou 9 dígitos
-    return /^55\d{2}\d{8,9}$/.test(d);
+    return /^55\d{2}\d{8,9}$/.test(d);          // 55 + DDD + 8 ou 9 dígitos
   }
 
-  // ---- 3. degrau atual -----------------------------------------------------
+  // --- 3. degrau atual ------------------------------------------------------
+  // O degrau "pela metade" existe de propósito. Colar a URL e ser interrompido
+  // antes de achar a chave é o acidente mais provável das 19h58, e cair de volta
+  // pro degrau 0 faria a página mostrar o JSON do lead PRO PRÓPRIO LEAD e perder
+  // todo mundo em silêncio.
   function degrau() {
-    if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY) return 2;
+    const temUrl = !!CONFIG.SUPABASE_URL, temKey = !!CONFIG.SUPABASE_KEY;
+    if (temUrl && temKey) return 2;
+    if (temUrl !== temKey) return -1;           // pela metade
     if (CONFIG.WEBHOOK_URL) return 1;
     return 0;
   }
@@ -653,65 +756,118 @@ const EVENTO = {
     msgErr.scrollIntoView({ block: 'nearest' });
   }
 
-  // ---- 4. submit -----------------------------------------------------------
+  function escapar(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  if (degrau() === -1) {
+    gritar('Configuração pela metade: você preencheu '
+      + (CONFIG.SUPABASE_URL ? 'a URL do Supabase mas não a chave' : 'a chave mas não a URL')
+      + '. Nesse estado a página NÃO grava lead nenhum. Complete o bloco CONFIG '
+      + 'antes de mandar tráfego.');
+  }
+
+  // --- 4. submit ------------------------------------------------------------
   form.addEventListener('submit', async function (e) {
     e.preventDefault();                       // (1) sem isto, nada disso roda
-    msgErr.hidden = true;
-    errPhone.hidden = true;
 
-    const dados = new FormData(form);
-
-    // honeypot: robô preenche tudo, inclusive o campo escondido.
-    // Silêncio de propósito: fingir sucesso não ensina o robô a tentar de novo.
-    if (String(dados.get('website') || '').trim() !== '') {
-      msgOk.textContent = 'Inscrição confirmada.';
-      msgOk.hidden = false;
-      form.reset();
-      return;
-    }
-
-    // A validação do navegador roda ANTES de qualquer requisição. Isso importa:
-    // deixar o banco recusar o consentimento devolveria um 400 com nome de
-    // constraint do Postgres, que não é mensagem pra ninguém ler.
-    if (!form.reportValidity()) return;
-
-    const telefone = normalizarTelefone(dados.get('phone'));
-    if (!telefoneValido(telefone)) {
-      errPhone.textContent = 'Confira o número: precisa ter DDD e de 8 a 9 dígitos.';
-      errPhone.hidden = false;
-      form.elements.phone.setAttribute('aria-invalid', 'true');
-      form.elements.phone.focus();
-      return;
-    }
-    form.elements.phone.removeAttribute('aria-invalid');
-
-    const payload = {
-      name:  String(dados.get('name')).trim(),
-      email: String(dados.get('email')).trim().toLowerCase(),
-      phone: telefone,
-      consent_lgpd: true,
-      // O texto do consentimento vai CONGELADO dentro da linha. Consentimento é
-      // a um texto específico: se a redação da página mudar semana que vem, as
-      // linhas antigas precisam continuar sabendo com o que a pessoa concordou.
-      consent_text: (document.getElementById('consent-text').textContent || '').replace(/\s+/g, ' ').trim(),
-      source_url: location.origin + location.pathname,
-      // created_at NÃO vai no corpo, de propósito: quem carimba a hora é o
-      // banco. Mandar do navegador grava o relógio do visitante, que pode
-      // estar em 1970.
-    };
-
-    btn.disabled = true;                      // trava o duplo clique
     const rotulo = btn.textContent;
-    btn.textContent = 'Enviando...';
-
     try {
+      msgErr.hidden = true;
+      msgOk.hidden = true;
+      if (errPhone) errPhone.hidden = true;
+
+      const dados = new FormData(form);
+      const campo = n => { const v = dados.get(n); return v == null ? null : String(v).trim(); };
+
+      // honeypot: robô preenche tudo, inclusive o campo escondido.
+      // Silêncio de propósito: fingir sucesso não ensina o robô a tentar de novo.
+      if (campo('website')) {
+        form.reset();
+        msgOk.textContent = 'Inscrição confirmada.';
+        msgOk.hidden = false;
+        return;
+      }
+
+      // A validação do navegador roda ANTES de qualquer requisição. Isso importa:
+      // deixar o banco recusar o consentimento devolveria um 400 com nome de
+      // constraint do Postgres, que não é mensagem pra ninguém ler.
+      if (!form.reportValidity()) return;
+
+      // Os três campos base são procurados pelo `name`. Se um passe visual
+      // renomear `name="name"` pra `name="nome"`, isso aqui grita em vez de
+      // gravar a string de quatro letras "null" no banco.
+      const nome = campo('name'), email = campo('email'), fone = campo('phone');
+      if (nome === null || email === null || fone === null) {
+        const perdidos = [['name', nome], ['email', email], ['phone', fone]]
+          .filter(x => x[1] === null).map(x => 'name="' + x[0] + '"');
+        throw new Error('O formulário perdeu ' + perdidos.join(' e ')
+          + '. Peça pro Claude restaurar esses atributos name= no <form>.');
+      }
+
+      // Consentimento é LIDO da caixinha, nunca afirmado. Cravar
+      // `consent_lgpd: true` no payload registra consentimento que a pessoa
+      // pode não ter dado, e é o registro que vale como prova depois.
+      const caixa = form.elements.consent;
+      const consentiu = !!(caixa && caixa.checked);
+      if (!consentiu) {
+        if (caixa) caixa.focus();
+        throw new Error('Marque a caixinha de consentimento pra continuar.');
+      }
+
+      // E o texto do consentimento vai CONGELADO dentro da linha: consentimento
+      // é a um texto específico. Sem o texto, o registro não prova nada, então
+      // é melhor falhar aqui do que gravar consentimento sem lastro.
+      const textoConsent = consentEl
+        ? (consentEl.textContent || '').replace(/\s+/g, ' ').trim()
+        : (caixa && caixa.closest('label') ? (caixa.closest('label').textContent || '').replace(/\s+/g, ' ').trim() : '');
+      if (!textoConsent) {
+        throw new Error('Sumiu o texto do consentimento (id="consent-text"). '
+          + 'Sem ele o registro não prova com o que a pessoa concordou. '
+          + 'Peça pro Claude restaurar o bloco INTOCÁVEL do formulário.');
+      }
+
+      const telefone = normalizarTelefone(fone);
+      if (!telefoneValido(telefone)) {
+        if (errPhone) {
+          errPhone.textContent = 'Confira o número: precisa ter DDD e de 8 a 9 dígitos.';
+          errPhone.hidden = false;
+        }
+        if (form.elements.phone) {
+          form.elements.phone.setAttribute('aria-invalid', 'true');
+          form.elements.phone.focus();
+        }
+        return;
+      }
+      if (form.elements.phone) form.elements.phone.removeAttribute('aria-invalid');
+
+      const payload = {
+        name: nome,
+        email: email.toLowerCase(),
+        phone: telefone,
+        consent_lgpd: consentiu,
+        consent_text: textoConsent,
+        source_url: location.origin + location.pathname,
+        // A hora quem carimba é o banco, pelo default now(). Mandar do
+        // navegador grava o relógio do visitante, que pode estar em 1970.
+      };
+
+      btn.disabled = true;                      // trava o duplo clique
+      btn.textContent = 'Enviando...';
+
       const nivel = degrau();
 
       if (nivel === 0) {
-        msgOk.innerHTML = '<strong>Inscrição validada.</strong> Ainda não há destino configurado, '
-          + 'então nada foi gravado. Este é o payload que sairia daqui:'
+        msgOk.innerHTML = '<strong>Inscrição validada.</strong> Ainda não há destino '
+          + 'configurado, então nada foi gravado. Este é o payload que sairia daqui:'
           + '<pre>' + escapar(JSON.stringify(payload, null, 2)) + '</pre>';
         msgOk.hidden = false;
+
+      } else if (nivel === -1) {
+        throw new Error('A página está com a configuração pela metade e não tem '
+          + 'onde gravar. Complete SUPABASE_URL e SUPABASE_KEY no bloco CONFIG.');
 
       } else if (nivel === 1) {
         const r = await fetch(CONFIG.WEBHOOK_URL, {
@@ -737,8 +893,7 @@ const EVENTO = {
           }
         );
         if (!r.ok) {                                               // (2)
-          const corpo = (await r.text()).slice(0, 400);
-          throw new Error('HTTP ' + r.status + ' · ' + corpo);
+          throw new Error('HTTP ' + r.status + ' · ' + (await r.text()).slice(0, 400));
         }
         sucesso();
       }
@@ -747,7 +902,7 @@ const EVENTO = {
       mostrarErro(
         '<strong>Não deu pra concluir a inscrição.</strong> '
         + 'Mostre esta linha inteira pro Claude, o número é o diagnóstico:<br>'
-        + '<code>' + escapar(String(erro && erro.message ? erro.message : erro)) + '</code>'
+        + '<code>' + escapar(erro && erro.message ? erro.message : erro) + '</code>'
       );
     } finally {
       btn.disabled = false;
@@ -756,25 +911,19 @@ const EVENTO = {
 
     function sucesso() {
       form.reset();
+      const base = '<strong>Inscrição confirmada.</strong> ';
       if (CONFIG.WHATSAPP) {
-        msgOk.innerHTML = '<strong>Inscrição confirmada.</strong> Te levando pro WhatsApp pra '
-          + 'liberar o acesso...';
+        msgOk.innerHTML = base + escapar(txtOkWpp ? txtOkWpp.innerHTML.trim() : '');
         msgOk.hidden = false;
-        const url = 'https://wa.me/' + CONFIG.WHATSAPP
+        const url = 'https://wa.me/' + encodeURIComponent(CONFIG.WHATSAPP)
           + '?text=' + encodeURIComponent(CONFIG.WHATSAPP_TEXT);
         setTimeout(function () { location.href = url; }, 1200);
       } else {
-        msgOk.innerHTML = '<strong>Inscrição confirmada.</strong> [FALTA: diga aqui o que acontece agora.]';
+        msgOk.innerHTML = base + escapar(txtOk ? txtOk.innerHTML.trim() : '');
         msgOk.hidden = false;
       }
     }
   });
-
-  function escapar(s) {
-    return String(s).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-    });
-  }
 })();
 /* ================= FIM DO INTOCÁVEL · MOTOR DO FORMULÁRIO ================= */
 </script>
