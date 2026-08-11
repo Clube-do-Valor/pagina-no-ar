@@ -10,6 +10,26 @@ Do arquivo local até um lead real no banco, em duas horas, sem terminal e sem b
 **Esta skill não escreve copy.** Se a pessoa ainda não tem o texto da página, ela para
 aqui e vai buscar na Função 4 da skill do desafio. Sem copy, não há o que publicar.
 
+## Antes de tudo: onde moram os arquivos desta skill
+
+O `cwd` é a pasta do projeto **da pessoa**. Os arquivos citados abaixo (`assets/`,
+`references/`, `scripts/`) **não estão lá**: eles moram no diretório desta skill, que
+fica no cache do plugin e muda de caminho a cada atualização.
+
+Resolva o diretório uma vez, no começo da sessão, e use caminho absoluto daí em diante:
+
+```bash
+SKILL="${CLAUDE_PLUGIN_ROOT:-}"
+[ -n "$SKILL" ] && SKILL="$SKILL/skills/pagina-no-ar"
+[ -f "$SKILL/scripts/check_page.py" ] || SKILL="$(ls -d "$HOME"/.claude/plugins/cache/*/pagina-no-ar/*/skills/pagina-no-ar 2>/dev/null | tail -1)"
+[ -f "$SKILL/scripts/check_page.py" ] && echo "SKILL=$SKILL" || echo 'NAO ACHEI a skill'
+```
+
+Se isso imprimir `NAO ACHEI`, use o **diretório-base da skill que o runtime mostrou** ao
+carregar este arquivo. Nunca chute, e nunca gere do zero o que era pra ser copiado: se o
+`index.html` sair de improviso em vez do `assets/index-template.html`, todas as guardas
+deste material somem de uma vez e ninguém percebe.
+
 ## A ordem, e ela não é negociável
 
 Visual primeiro, dado depois. Não é preferência: a fase de design **reescreve o
@@ -48,15 +68,23 @@ aparece em segundos e é o melhor instrumento de triagem que existe.
 
 ### 3. A URL nasce antes do design
 
-Copie `assets/index-template.html` para `index.html` **na raiz da pasta do projeto**,
-sem alterar nada, e publique. Ver `references/deploy.md` para os comandos literais.
+```bash
+cp "$SKILL/assets/index-template.html" ./index.html
+```
+
+O destino é `index.html` **na raiz da pasta do projeto da pessoa**, e vai sem alterar
+nada. Ver `references/deploy.md` para os comandos literais de publicação.
 
 O entregável deste passo é a **URL existir**, não o conteúdo dela. Editar a headline
 antes de subir parece natural e é armadilha: adiciona um passo que depende de cada
 pessoa acertar antes de existir prova de vida.
 
-Copie também `assets/impeccable-live-config.json` para `.impeccable/live/config.json`,
-o que economiza uma etapa de setup se o refinamento visual usar o `live` mode.
+Copie também a config do `live` mode pra dentro do projeto da pessoa, o que economiza
+uma etapa de setup se o refinamento visual usar o `live`:
+
+```bash
+mkdir -p .impeccable/live && cp "$SKILL/assets/impeccable-live-config.json" .impeccable/live/config.json
+```
 
 ### 4. O visual, e aqui a skill sai da frente
 
@@ -86,7 +114,7 @@ gesto que você consegue executar.
 ### 6. PORTÃO 2 · QA antes de publicar
 
 ```bash
-python3 scripts/check_page.py index.html
+python3 "$SKILL/scripts/check_page.py" index.html
 ```
 
 Ele sai com código 1 se houver bloqueio. Some a isso `references/antes-de-publicar.md`,
@@ -123,6 +151,8 @@ rodada de estética os reescrever, restaure. `check_page.py` detecta.
 Marque `[FALTA: ...]`, que é a convenção que ela já usa na Função 4.
 
 ## Arquivos
+
+Todos relativos a `$SKILL`, nunca ao `cwd` da pessoa. Ver a primeira seção.
 
 | Arquivo | Quando ler |
 |---|---|

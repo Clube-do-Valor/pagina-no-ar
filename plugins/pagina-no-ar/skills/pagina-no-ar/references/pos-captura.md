@@ -68,7 +68,7 @@ inválido" ou abrir a conversa de outra pessoa, o número está errado, e a sua 
 
 | Sintoma na tela | Causa | Verificação / frase de conserto |
 |---|---|---|
-| WhatsApp diz "número inválido" e a página não acusa nada | `CONFIG.WHATSAPP` com `+`, parêntese, traço, espaço ou zero à esquerda | rodar `python3 scripts/check_page.py index.html`, e abrir o `wa.me` na barra de endereço |
+| WhatsApp diz "número inválido" e a página não acusa nada | `CONFIG.WHATSAPP` com `+`, parêntese, traço, espaço ou zero à esquerda | rodar `python3 "$SKILL/scripts/check_page.py" index.html`, e abrir o `wa.me` na barra de endereço |
 | Abre a conversa **de outra pessoa** | DDD errado, ou o `55` esquecido e o número lido como de outro país | o teste de barra de endereço acima é o único que pega isso |
 | Formulário diz "Inscrição validada" e **não redireciona** | você está no **degrau 0**: `WHATSAPP` preenchido, mas `SUPABASE_URL`/`SUPABASE_KEY` e `WEBHOOK_URL` vazios. Nesse degrau a página só mostra o payload, não chama o sucesso | preencher o destino do dado. O redirect vive no caminho de sucesso, e no degrau 0 não há envio pra dar sucesso |
 | Lead chega no WhatsApp e a automação do ManyChat não dispara | ele apagou a mensagem pré-preenchida e escreveu a dele. A doc do ManyChat é explícita: mensagem própria não casa a keyword | nenhuma. **Trate como esperado** e olhe a caixa de entrada. A keyword nunca é o único caminho até o lead |

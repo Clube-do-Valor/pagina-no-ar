@@ -19,7 +19,7 @@ Oito itens. Nenhum é opcional. O item 8 é o único que fecha de verdade.
 ## 1. Rodar o `check_page.py`
 
 ```bash
-python3 scripts/check_page.py index.html
+python3 "$SKILL/scripts/check_page.py" index.html
 ```
 
 Passou quando a última linha diz `Liberado pra publicar.`. Qualquer linha começando com
