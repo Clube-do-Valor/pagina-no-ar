@@ -1,29 +1,19 @@
 # Quando quebra
 
-Leia este arquivo no momento em que alguma coisa não funcionou: o formulário não gravou, a página
-publicada está estranha, ou o Claude precisa de um diagnóstico pra consertar. Não precisa ler antes.
+Leia no momento em que alguma coisa não funcionou: o formulário não gravou, a página publicada está estranha, ou o Claude precisa de um diagnóstico pra consertar. Não precisa ler antes.
 
 ## Primeiro: não saiu de primeira, e está tudo certo
 
 **O envio não sai na primeira tentativa.** Nos vídeos que serviram de pesquisa pra esta aula, isso
-aconteceu em **100% das ocorrências filmadas**: a pessoa preenche o formulário, vai olhar o destino,
-não chegou nada. Na segunda tentativa chega. É por isso que o bloco do dado anuncia a falha antes de
-ela acontecer.
-
-Ou seja: isso é etapa, não é vergonha, e não é sinal de que você fez alguma coisa errada. Quem trava
-aqui trava por achar que é o único, e não é. Todo mundo passa por isso.
+aconteceu em **100% das ocorrências filmadas**: preenche o formulário, vai olhar o destino, não chegou
+nada. Na segunda tentativa chega. É por isso que o bloco do dado anuncia a falha antes dela acontecer.
+Isso é etapa, não é vergonha, e não é sinal de que você fez alguma coisa errada. Quem trava aqui trava
+por achar que é o único, e não é.
 
 ## O gesto único: a página já te entrega o diagnóstico
 
-O template não engole erro. Quando o envio falha, aparece na tela uma caixa vermelha com uma linha
-neste formato:
-
-```text
-HTTP 401 · {"code":"42501","message":"permission denied for table leads"}
-```
-
-Esse número é o diagnóstico inteiro. O gesto é sempre o mesmo: **copiar a linha inteira e colar no
-chat do Claude**, assim:
+O template não engole erro. Quando o envio falha, aparece na tela uma caixa vermelha com o status cru,
+e esse número é o diagnóstico inteiro. O gesto é sempre o mesmo: copiar a linha e colar no chat.
 
 ```text
 Enviei o formulário e apareceu isto na tela:
@@ -31,8 +21,8 @@ HTTP 401 · {"code":"42501","message":"permission denied for table leads"}
 Diagnostica pelo status e me diz o que fazer. Não reescreve o formulário inteiro.
 ```
 
-A frase final não é frescura: sem ela, o modelo tende a reescrever o `<form>` pra "melhorar", e aí
-você troca um erro conhecido por três desconhecidos.
+A última frase não é frescura: sem ela, o modelo tende a reescrever o `<form>` pra "melhorar", e você
+troca um erro conhecido por três desconhecidos.
 
 ---
 
@@ -50,27 +40,21 @@ está do lado do banco.
 | `PGRST204`, e a mensagem **nomeia** uma coluna | 400 | nome de coluna errado. Quase sempre copy em português com tabela em inglês (`nome` contra `name`) | a própria mensagem diz qual coluna ele não achou |
 | `PGRST204` insistindo numa coluna que **você acabou de criar** | 400 | cache de schema do PostgREST, ~30 segundos | espere 30s e tente de novo antes de mexer em qualquer coisa |
 
-RLS e GRANT são **dois cadeados diferentes**: a policy autoriza a linha, o grant autoriza o role a
-tocar na tabela. Sem grant, o Postgres nega antes de olhar a policy. Por isso os dois primeiros casos
-parecem idênticos e têm conserto diferente.
+RLS e GRANT são **dois cadeados diferentes**: a policy autoriza a linha, o grant autoriza o role a tocar
+na tabela. Sem grant, o Postgres nega antes de olhar a policy, e é por isso que os dois primeiros casos
+parecem iguais e têm conserto diferente.
 
 ### As frases de conserto
 
-Falta grant (é o mais comum em projeto criado em 2026):
-
-```text
-Deu 42501 no insert. Abre o SQL Editor do Supabase e me dá o SQL de grant pra tabela leads,
-pro role anon, só de INSERT. Eu colo e rodo.
-```
-
-O SQL, se quiser colar direto (roda inteiro, de uma vez, no SQL Editor):
+Falta grant, que é o mais comum em projeto criado em 2026. Cole inteiro, de uma vez, no SQL Editor do
+Supabase:
 
 ```sql
 revoke all on table public.leads from anon;
 grant insert on table public.leads to anon;
 ```
 
-RLS sem policy:
+RLS sem policy, mesma coisa, no SQL Editor:
 
 ```sql
 alter table public.leads enable row level security;
@@ -82,14 +66,12 @@ create policy "inscricao publica insere"
   with check (true);
 ```
 
-Os dois headers diferentes:
+Headers com valores diferentes, e o SELECT implícito que reverte:
 
 ```text
 Deu 401 Invalid JWT. Confere no index.html se o header apikey e o Authorization: Bearer
 estão com exatamente o mesmo valor da chave publicável. Corrige só isso.
 ```
-
-O SELECT implícito que reverte:
 
 ```text
 Só falha quando pede o registro de volta. Põe Prefer: return=minimal no fetch e tira
@@ -109,11 +91,9 @@ com eles, sem mudar mais nada.
 ## Família 2 · o formulário foi reescrito por uma rodada de visual
 
 Estas **não deveriam existir**, porque o template já vem com todas as proteções. Elas voltam quando um
-passe de design reescreve o HTML: a doc do impeccable diz, com essas palavras, que o build recompromete
-`inputs` e `buttons` no vocabulário da direção escolhida. Ou seja, pedir "deixa essa seção mais bonita"
-pode levar embora o motor do formulário.
-
-Se você caiu numa destas, o suspeito é o bloco de refinamento visual, não o Supabase.
+passe de design reescreve o HTML: a doc do impeccable diz que o build recompromete `inputs` e `buttons`
+no vocabulário da direção escolhida, então pedir "deixa essa seção mais bonita" pode levar embora o
+motor do formulário. Se você caiu numa destas, o suspeito é o refinamento visual, não o Supabase.
 
 | Sintoma na tela | Status | Causa | Como detectar |
 |---|---|---|---|
@@ -132,16 +112,12 @@ Uma rodada de visual levou embora parte do motor do formulário. Restaura, sem m
 design: o e.preventDefault() no submit, o if (!r.ok) com o status na tela, o header
 Content-Type: application/json, o Prefer: return=minimal, o btn.disabled durante o envio,
 o required da caixinha de consentimento, e os atributos name= originais dos campos.
-Não manda created_at no corpo.
+Não manda created_at no corpo. Confirma também que o botão de submit está DENTRO do
+<form> com type="submit", e que a tag <script> do formulário não é type="module".
 ```
 
-### A prevenção, que custa uma linha
-
-Toda vez que pedir mudança visual na seção do formulário, mande junto:
-
-```text
-Mantém os name= e os id= do formulário e todo o bloco marcado INTOCÁVEL exatamente como está.
-```
+E a prevenção, que custa uma linha: toda vez que pedir mudança visual na seção do formulário, mande
+junto `Mantém os name= e os id= do formulário e todo o bloco marcado INTOCÁVEL exatamente como está.`
 
 ---
 
@@ -169,17 +145,12 @@ arquivo e roda o grep de novo pra provar que voltou vazio. Depois publica com ve
 
 [CONFIRMAR: o comando exato do impeccable que remove o inject, e se ele deixa resto pra trás. É o item 5 do roteiro do ensaio de 13/08.]
 
-Publicou e não mudou:
+Conteúdo velho na URL de sempre, ou 404 na raiz:
 
 ```text
 Publica em produção com vercel --prod e me mostra a URL que saiu no resultado do comando.
-```
-
-404 na raiz:
-
-```text
-Deu 404 na raiz da URL. Confere se o arquivo se chama exatamente index.html e se ele está
-na raiz da pasta que subiu. Corrige e publica de novo com vercel --prod.
+Se der 404 na raiz, confere antes se o arquivo se chama exatamente index.html e se ele
+está na raiz da pasta que subiu.
 ```
 
 Lane do Drop com projeto duplicado:
@@ -198,19 +169,13 @@ erro nenhum**. A página funciona idêntica, e o banco fica aberto pro mundo pra
 lista de inscritos. Não existe sintoma. Nada avisa.
 
 Isso é nome, e-mail e telefone de pessoa física exposto, com anúncio rodando: é incidente de LGPD, não
-é bug de front. A verificação leva 10 segundos e é obrigatória antes de divulgar:
-
-1. abra a página publicada e dê `Ctrl+U` pra ver o código-fonte;
-2. ache a chave;
-3. confirme que o rótulo de onde ela saiu no painel do Supabase era **publishable** (ou `anon`), nunca
-   `service_role` nem `secret`.
-
-Se a errada já foi publicada: **rotacione em Project Settings → API antes de republicar**. Trocar só no
-arquivo não resolve, porque a chave antiga continua valendo.
+é bug de front. A verificação leva 10 segundos e é obrigatória antes de divulgar: abra a página
+publicada, dê `Ctrl+U` pra ver o código-fonte, ache a chave, e confirme que o rótulo de onde ela saiu
+no painel do Supabase era **publishable** (ou `anon`), nunca `service_role` nem `secret`. Se a errada
+já foi publicada, **rotacione em Project Settings → API antes de republicar**: trocar só no arquivo não
+resolve, porque a chave antiga continua valendo.
 
 ### A prova de que a chave publicável pode ficar no HTML
-
-Pedir isto ao Claude, com a chave que está pública na sua página:
 
 ```text
 Roda um curl de LEITURA na minha tabela leads usando a chave publicável e me mostra o
