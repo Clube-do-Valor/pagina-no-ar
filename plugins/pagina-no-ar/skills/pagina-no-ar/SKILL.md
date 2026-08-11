@@ -16,19 +16,28 @@ O `cwd` é a pasta do projeto **da pessoa**. Os arquivos citados abaixo (`assets
 `references/`, `scripts/`) **não estão lá**: eles moram no diretório desta skill, que
 fica no cache do plugin e muda de caminho a cada atualização.
 
-Resolva o diretório uma vez, no começo da sessão, e use caminho absoluto daí em diante:
+Resolva o diretório **uma vez**, no começo da sessão, rodando isto:
 
 ```bash
-SKILL="${CLAUDE_PLUGIN_ROOT:-}"
-[ -n "$SKILL" ] && SKILL="$SKILL/skills/pagina-no-ar"
-[ -f "$SKILL/scripts/check_page.py" ] || SKILL="$(ls -d "$HOME"/.claude/plugins/cache/*/pagina-no-ar/*/skills/pagina-no-ar 2>/dev/null | tail -1)"
-[ -f "$SKILL/scripts/check_page.py" ] && echo "SKILL=$SKILL" || echo 'NAO ACHEI a skill'
+S="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/pagina-no-ar}"
+[ -f "$S/scripts/check_page.py" ] || S="$(ls -d "$HOME"/.claude/plugins/cache/*/pagina-no-ar/*/skills/pagina-no-ar 2>/dev/null | tail -1)"
+[ -f "$S/scripts/check_page.py" ] && echo "ACHEI: $S" || echo 'NAO ACHEI a skill'
 ```
 
-Se isso imprimir `NAO ACHEI`, use o **diretório-base da skill que o runtime mostrou** ao
-carregar este arquivo. Nunca chute, e nunca gere do zero o que era pra ser copiado: se o
-`index.html` sair de improviso em vez do `assets/index-template.html`, todas as guardas
-deste material somem de uma vez e ninguém percebe.
+Se imprimir `NAO ACHEI`, use o **diretório-base da skill que o runtime mostrou** ao
+carregar este arquivo.
+
+> **A regra que faz isso valer, e ela não é estilo.** Guarde o caminho que apareceu e
+> **escreva ele literal, por extenso, em todo comando daqui pra frente.** Variável de
+> shell **não sobrevive de um comando pro outro**, então `$S` num comando novo chega
+> vazio e o caminho vira `/scripts/check_page.py`, que não existe. Daqui em diante,
+> `<SKILL>` nos blocos abaixo significa **substitua pelo caminho por extenso**, nunca
+> cole o sinal de menor.
+
+E a que fecha o buraco de comportamento: **nunca gere do zero o que era pra ser
+copiado.** Se o `cp` falhar, resolva o caminho de novo. Um `index.html` improvisado no
+lugar do `assets/index-template.html` perde todas as guardas deste material de uma vez,
+e perde calado.
 
 ## A ordem, e ela não é negociável
 
@@ -69,7 +78,7 @@ aparece em segundos e é o melhor instrumento de triagem que existe.
 ### 3. A URL nasce antes do design
 
 ```bash
-cp "$SKILL/assets/index-template.html" ./index.html
+cp <SKILL>/assets/index-template.html ./index.html
 ```
 
 O destino é `index.html` **na raiz da pasta do projeto da pessoa**, e vai sem alterar
@@ -83,7 +92,7 @@ Copie também a config do `live` mode pra dentro do projeto da pessoa, o que eco
 uma etapa de setup se o refinamento visual usar o `live`:
 
 ```bash
-mkdir -p .impeccable/live && cp "$SKILL/assets/impeccable-live-config.json" .impeccable/live/config.json
+mkdir -p .impeccable/live && cp <SKILL>/assets/impeccable-live-config.json .impeccable/live/config.json
 ```
 
 ### 4. O visual, e aqui a skill sai da frente
@@ -114,8 +123,11 @@ gesto que você consegue executar.
 ### 6. PORTÃO 2 · QA antes de publicar
 
 ```bash
-python3 "$SKILL/scripts/check_page.py" index.html
+python3 <SKILL>/scripts/check_page.py index.html
 ```
+
+Se der `No such file`, o `<SKILL>` não foi substituído pelo caminho por extenso. Resolva
+de novo pela primeira seção. Não pule o Portão 2 por causa disso.
 
 Ele sai com código 1 se houver bloqueio. Some a isso `references/antes-de-publicar.md`,
 que cobre o que o script não vê. Os dois itens que fecham de verdade:
@@ -152,7 +164,7 @@ Marque `[FALTA: ...]`, que é a convenção que ela já usa na Função 4.
 
 ## Arquivos
 
-Todos relativos a `$SKILL`, nunca ao `cwd` da pessoa. Ver a primeira seção.
+Todos relativos ao diretório da skill (o `<SKILL>` da primeira seção), nunca ao `cwd` da pessoa.
 
 | Arquivo | Quando ler |
 |---|---|
