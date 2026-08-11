@@ -4,15 +4,24 @@
     "name": "Clube do Valor",
     "url": "https://github.com/Clube-do-Valor"
   },
+  "description": "Marketplace do Clube do Valor. Hoje traz o pagina-no-ar, a skill da aula de deploy do Desafio Webinario Perfeito.",
   "plugins": [
     {
       "name": "pagina-no-ar",
       "source": "./plugins/pagina-no-ar",
       "description": "Coloca no ar a página de inscrição do webinário: template, deploy no Vercel, captura no Supabase e saída pro WhatsApp. Não escreve a copy.",
       "version": "0.1.0",
-      "author": { "name": "Julio Dall'agnol" },
+      "author": {
+        "name": "Julio Dall'agnol"
+      },
       "license": "MIT",
-      "keywords": ["landing-page", "vercel", "supabase", "webinario", "deploy"]
+      "keywords": [
+        "landing-page",
+        "vercel",
+        "supabase",
+        "webinario",
+        "deploy"
+      ]
     }
   ]
 }

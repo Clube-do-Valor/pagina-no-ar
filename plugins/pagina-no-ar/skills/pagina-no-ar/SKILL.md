@@ -1,6 +1,6 @@
 ---
 name: pagina-no-ar
-description: Coloca no ar a página de inscrição do webinário, do arquivo ao lead gravado. Use quando alguém quiser publicar, subir, deployar ou hospedar a LP de inscrição, criar o formulário de captura, ligar a página ao Supabase ou a um webhook, ou mandar o lead pro WhatsApp. NÃO escreve a copy da página: a copy vem pronta da Função 4 da skill do desafio, e esta skill só a coloca no ar.
+description: "Coloca no ar a página de inscrição do webinário, do arquivo ao lead gravado. Use quando alguém quiser publicar, subir, deployar ou hospedar a LP de inscrição, criar o formulário de captura, ligar a página ao Supabase ou a um webhook, ou mandar o lead pro WhatsApp. NÃO escreve a copy da página, porque a copy vem pronta da Função 4 da skill do desafio, e esta skill só a coloca no ar."
 ---
 
 # Página no ar
