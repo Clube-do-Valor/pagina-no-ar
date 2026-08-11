@@ -39,7 +39,9 @@ Telefone é obrigatório **quando a jornada continua no WhatsApp**. Nesse caso e
 2. o `<em class="field-err" id="err-phone">` logo abaixo dele;
 3. o bloco de normalização e validação do telefone dentro do script.
 
-Apagar só o primeiro deixa o script chamando `errPhone.hidden = true` num elemento que não existe mais. O handler estoura na primeira linha, antes de qualquer validação, e o sintoma é o pior que existe: **o botão não faz nada**. Sem mensagem, sem erro na tela, sem requisição.
+Apagar só o primeiro deixava o script chamando `errPhone.hidden = true` num elemento que não existe mais, o handler estourava antes de qualquer validação, e o sintoma era o pior que existe: **o botão não fazia nada**. Sem mensagem, sem erro na tela, sem requisição.
+
+O template atual tem guarda contra isso: toda busca no DOM passa por uma função que registra o que faltou, e o que faltar vira **aviso vermelho na tela** dizendo qual elemento sumiu. Então hoje o sintoma é barulhento. Mesmo assim, apagar metade do par continua sendo edição de código e não edição de texto: peça as duas coisas juntas.
 
 > Recomendação pra esta aula: **mantenha o telefone e faça a jornada continuar no WhatsApp.** É o caminho testado, é o que faz o botão de sucesso levar a pessoa pro `wa.me`, e evita mexer no bloco intocável. Se você tem certeza de que quer tirar, peça assim, com essas palavras: *"remova o campo de telefone do formulário, o `err-phone` e o bloco de normalização do telefone no script, e confirme que o submit continua funcionando"*.
 
@@ -109,14 +111,14 @@ O que **não** vai no corpo, e é de propósito: `id` e `created_at` (quem carim
 O script lê o texto do consentimento **da própria página, no momento do submit**, e grava dentro da linha:
 
 ```js
-consent_text: (document.getElementById('consent-text').textContent || '').replace(/\s+/g, ' ').trim(),
+consent_text: (consentEl.textContent || '').replace(/\s+/g, ' ').trim(),   // consentEl vem do guarda pega('consent-text')
 ```
 
 Motivo: consentimento é sempre a **um texto específico**. Se você mudar a redação em 19/08 pra caber num anúncio, ou pra incluir "e ofertas do meu programa", toda linha gravada antes disso perde o vínculo com o que a pessoa de fato leu. Sem essa coluna você consegue dizer "ela consentiu". Com ela você consegue dizer "ela consentiu **com isto**", e a segunda frase é a que serve de prova. A LGPD trata consentimento no art. 8º, e vale conferir a redação na fonte oficial.
 
 Duas consequências práticas:
 
-- **O `id="consent-text"` faz parte do contrato de dado, não do visual.** Se uma rodada de estética reescrever aquele `<span>` e derrubar o `id`, o script estoura antes de qualquer envio e o sintoma é de novo **o botão não faz nada**. Se o `id` sobreviver mas a redação for reescrita, nada quebra e a coluna passa a gravar o texto novo, calada.
+- **O `id="consent-text"` faz parte do contrato de dado, não do visual.** Se uma rodada de estética derrubar o `id`, o template atual **recusa o envio com mensagem na tela**, de propósito: consentimento sem o texto que a pessoa leu não prova nada, então é melhor falhar alto do que gravar um registro sem lastro. Se o `id` sobreviver mas a redação for reescrita, nada quebra e a coluna passa a gravar o texto novo, calada. Essa é a que continua silenciosa.
 - **Nunca faça `UPDATE` em `consent_text` de linha antiga.** Nem pra "padronizar", nem pra corrigir uma vírgula. O valor velho é justamente a prova. Se a redação mudou, ela vale das linhas novas em diante.
 
 Teste que fecha isso: mandar um lead de teste e abrir a linha no Table Editor conferindo que `consent_text` **não veio vazio** e que bate com o que está escrito na página.
@@ -161,12 +163,15 @@ O `check (consent_lgpd is true)` na tabela **não pode ser quem barra o usuário
 
 Quem barra é a caixinha `required` no HTML, que roda **antes de qualquer requisição**, com mensagem em português, no navegador da pessoa.
 
-Na verdade a coisa é ainda mais forte: o payload manda `consent_lgpd: true` fixo, e ele só é montado **depois** de a validação do navegador passar. Ou seja, o `CHECK` é matematicamente incapaz de disparar por causa do formulário. O que ele guarda é o resto: qualquer POST que **não veio da página**, batendo direto no endpoint aberto.
+E tem uma segunda trava, que é a que importa pro registro valer: **o script LÊ a caixinha** e monta `consent_lgpd` com o que ela realmente estava. Isso não é detalhe. A versão anterior deste template cravava `consent_lgpd: true` no payload, o que significa que, se o `required` do HTML sumisse numa rodada de estética, a página gravaria consentimento afirmativo de gente que não marcou nada. E é justamente esse registro que vale como prova depois.
+
+Com as duas travas, o `CHECK` do banco não dispara por causa do formulário. O que ele guarda é o resto: qualquer POST que **não veio da página**, batendo direto no endpoint aberto.
 
 | Sintoma | Causa | Verificação |
 |---|---|---|
 | desmarcar a caixinha e aparecer `400` com nome de constraint | o `required` da caixinha sumiu numa rodada visual | abrir a aba Network e submeter com a caixinha vazia: tem que dar **zero requisição** |
-| botão não faz nada, nenhuma mensagem, nenhuma requisição | o script estourou antes do envio, quase sempre porque `id="consent-text"` ou `id="err-phone"` foi removido do HTML | abrir o Console do navegador e ler a primeira linha vermelha |
+| aviso vermelho no topo do formulário dizendo que sumiu `#alguma-coisa` | um `id` do bloco intocável foi removido numa rodada de estética. A guarda do template pegou | leia o nome do elemento no próprio aviso e peça pro Claude restaurar o bloco INTOCÁVEL |
+| botão não faz nada, nenhuma mensagem, nenhuma requisição | não deveria mais acontecer com este template. Se acontecer, o guarda foi removido junto | abrir o Console do navegador e ler a primeira linha vermelha, e restaurar o bloco INTOCÁVEL inteiro |
 | linha entra no banco com `consent_text` vazio | o `<span id="consent-text">` ficou vazio ou virou imagem/ícone | Table Editor, olhar a coluna na linha de teste |
 | `400 · PGRST204` dizendo que a coluna não existe | o SQL colado divergiu do modelo de dado acima, quase sempre nome em português | comparar nome por nome com a tabela canônica deste arquivo |
 

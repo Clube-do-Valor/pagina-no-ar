@@ -165,7 +165,7 @@ gesto, e não sensação.
 | "Inscrição confirmada" e o banco vazio | RLS ligada sem policy, ou faltou o `grant insert`. O erro volta em JSON que ninguém lê | item 8, a linha no Table Editor |
 | Datas em 1970, ou a hora errada | `created_at` foi mandado no corpo do POST e sobrescreveu o `default now()` do banco | item 8, o campo `created_at` |
 | O lead chega e o `wa.me` diz "número inválido" | telefone gravado com parêntese ou traço em vez de E.164 | item 8, o campo `phone` |
-| A caixinha desmarcada devolve erro esquisito | sumiu o `required` do checkbox, e quem barra virou o banco | item 7, zero linha na aba Network |
+| A caixinha desmarcada devolve erro esquisito | sumiu o `required` do checkbox. O script ainda lê a caixinha e recusa com mensagem, mas quem devia barrar antes de qualquer requisição é o HTML | item 7, zero linha na aba Network |
 
 ---
 

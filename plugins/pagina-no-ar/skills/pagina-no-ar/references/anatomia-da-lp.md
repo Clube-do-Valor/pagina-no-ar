@@ -99,14 +99,20 @@ Se `CONFIG.WHATSAPP` estiver preenchido, o sucesso redireciona pro WhatsApp em 1
 a promessa tem que falar de WhatsApp. Se a página prometer e-mail e o destino for WhatsApp, a
 pessoa fica esperando um e-mail que ninguém programou:
 
-```js
-msgOk.innerHTML = '<strong>Inscrição confirmada.</strong> Te levando pro WhatsApp pra '
-  + 'liberar o acesso...';
+Os dois textos de confirmação moram no HTML, dentro do formulário, e não numa string do
+JavaScript:
+
+```html
+<template id="txt-sucesso">[FALTA: diga aqui o que acontece agora, logo depois da inscrição.]</template>
+<template id="txt-sucesso-wpp">Te levando pro WhatsApp pra liberar o acesso...</template>
 ```
 
-Detalhe que morde: o outro ramo da mensagem de sucesso, o que roda **sem** WhatsApp, continua com
-um `[FALTA:` dentro dele mesmo que você não use esse caminho. O `check_page.py` acha e bloqueia.
-Preencha os dois ramos ou apague o que você não usa.
+Isso é de propósito, e a razão é chata de descobrir sozinho: o gate **obriga** você a editar esse
+texto, e um apóstrofo (`chama o Dall'agnol`) dentro de aspas simples no JavaScript quebra o arquivo
+inteiro sem dar erro na tela. Em HTML, apóstrofo é só apóstrofo.
+
+Detalhe que morde: o ramo **sem** WhatsApp continua com um `[FALTA:` dentro dele mesmo que você não
+use esse caminho. O `check_page.py` acha e bloqueia. Preencha os dois ou apague o que você não usa.
 
 ## Um fold, uma mensagem
 

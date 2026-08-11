@@ -49,8 +49,8 @@ Os três são página no ar que funciona. Ninguém fica sem entregável.
 ## Verificar o template
 
 ```bash
-python3 skills/pagina-no-ar/scripts/check_page.py index.html
-node skills/pagina-no-ar/scripts/probe_page.mjs /caminho/index.html /pasta/prints
+python3 plugins/pagina-no-ar/skills/pagina-no-ar/scripts/check_page.py index.html
+node plugins/pagina-no-ar/skills/pagina-no-ar/scripts/probe_page.mjs /caminho/index.html /pasta/prints
 ```
 
 O `probe_page.mjs` roda o formulário de verdade num Chrome headless e mede o que
