@@ -1,0 +1,7 @@
+{
+  "name": "pagina-no-ar",
+  "description": "Coloca no ar a página de inscrição do webinário: template, deploy no Vercel, captura no Supabase e saída pro WhatsApp. Não escreve a copy.",
+  "version": "0.1.0",
+  "author": { "name": "Julio Dall'agnol" },
+  "license": "MIT"
+}
