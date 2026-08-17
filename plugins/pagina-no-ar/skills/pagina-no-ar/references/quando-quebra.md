@@ -6,7 +6,7 @@ Leia no momento em que alguma coisa não funcionou: o formulário não gravou, a
 
 **O envio não sai na primeira tentativa.** Nos vídeos que serviram de pesquisa pra esta aula isso
 aconteceu em **100% das ocorrências filmadas**: preenche o formulário, vai olhar o destino, não chegou
-nada. Na segunda tentativa chega, e é por isso que o bloco do dado anuncia a falha antes dela acontecer.
+nada. Na segunda tentativa chega, e é por isso que a Fase 5 anuncia a falha antes dela acontecer.
 Isso é etapa, não é vergonha e não é sinal de que você errou. Quem trava aqui trava achando que é o único.
 
 ## O gesto único: a página já te entrega o diagnóstico

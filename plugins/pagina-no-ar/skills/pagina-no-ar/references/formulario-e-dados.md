@@ -1,6 +1,6 @@
 # Formulário e dados
 
-Leia este arquivo em dois momentos: quando montar a ficha de insumos e o Portão 1 (decidir **quais campos** a página pede), e no bloco do dado, quando for criar a tabela e conferir o que a linha gravada precisa ter. Aqui está o modelo de dado, o payload, o texto de consentimento e a seção de privacidade. O SQL de `grant`, RLS e policy não é assunto deste arquivo: eles vêm no bloco colado do passo do Supabase.
+Leia este arquivo em dois momentos: na **Fase 1 e na Fase 4**, pra decidir **quais campos** a página pede, e na **Fase 5**, quando for criar a tabela e conferir o que a linha gravada precisa ter. Aqui está o modelo de dado, o payload, o texto de consentimento e a seção de privacidade. O SQL de `grant`, RLS e policy não é assunto deste arquivo: eles vêm no bloco colado de `supabase.md`.
 
 ---
 
@@ -49,24 +49,24 @@ O template atual tem guarda contra isso: toda busca no DOM passa por uma funçã
 
 ## Modelo de dado
 
-Esta é a tabela canônica. Se o SQL que você colar no Supabase divergir dela em um nome de coluna, o formulário devolve **400 com `PGRST204`** dizendo que a coluna não existe, e o lead não entra.
+**O SQL que de fato cria a tabela é o de `supabase.md`**, e ele é o que você cola. A tabela abaixo é a mesma coisa sem os comentários, e serve pra você conferir o contrato de colunas. Se o que você colar divergir em um nome de coluna, o formulário devolve **400 com `PGRST204`** dizendo que a coluna não existe, e o lead não entra.
 
 ```sql
 create table public.leads (
-  id           uuid primary key default gen_random_uuid(),
-  created_at   timestamptz not null default now(),
-  name         text not null check (char_length(name)  between 1 and 120),
-  email        text not null check (char_length(email) between 3 and 180),
-  phone        text         check (char_length(phone) <= 24),
-  consent_lgpd boolean not null check (consent_lgpd is true),
-  consent_text text not null check (char_length(consent_text) between 1 and 2000),
-  source_url   text         check (char_length(source_url) <= 500)
+  id            bigint generated always as identity primary key,
+  created_at    timestamptz not null default now(),
+  name          text    not null check (char_length(name)  between 1 and 120),
+  email         text    not null check (char_length(email) between 3 and 180),
+  phone         text             check (char_length(phone) between 10 and 24),
+  consent_lgpd  boolean not null check (consent_lgpd is true),
+  consent_text  text    not null check (char_length(consent_text) between 1 and 2000),
+  source_url    text             check (char_length(source_url) <= 300)
 );
 ```
 
 | Coluna | Tipo | Quem preenche | Nota |
 |---|---|---|---|
-| `id` | `uuid` | **o banco** | `default gen_random_uuid()`. O navegador nunca manda id |
+| `id` | `bigint identity` | **o banco** | gerado pelo banco. O navegador nunca manda id |
 | `created_at` | `timestamptz` | **o banco** | `default now()`. Mandar do navegador grava o relógio do visitante, que pode estar em 1970 |
 | `name` | `text` | o formulário | com `trim` |
 | `email` | `text` | o formulário | com `trim` e em minúsculas, senão o mesmo lead entra como dois |

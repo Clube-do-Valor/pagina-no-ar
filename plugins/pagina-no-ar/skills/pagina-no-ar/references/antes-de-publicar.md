@@ -1,8 +1,8 @@
-# Antes de publicar: o checklist do Portão 2
+# Antes de publicar: o checklist dos Portões 5 e 6
 
 Leia este arquivo quando o visual estiver fechado e você estiver prestes a rodar `vercel --prod`.
 Leia de novo depois de **qualquer** mudança na página, porque o gesto da aula (pede no chat, olha o
-diff, `vercel --prod`) acontece quatro vezes, e cada rodada envelhece o checklist anterior.
+diff, `vercel --prod`) acontece várias vezes, e cada rodada envelhece o checklist anterior.
 
 **A regra do portão: "funcionou aqui" não fecha item. Mostrar a tela fecha.** Tudo que está aqui é
 falha que não aparece sozinha. A página fica bonita, carrega rápido, e está errada.
@@ -79,7 +79,7 @@ pra uma mensagem só, tire o que não for a promessa principal, não mexa em mai
 ## 5. A data visível sem rolar
 
 Na mesma primeira tela do item 4, a data e a hora do webinário precisam estar visíveis. Isso não é
-capricho: data pública na página é o entregável de pontuação da semana 4.
+capricho: data pública na página é entregável de pontuação do desafio.
 
 Isso falha de verdade em página correta. Headline em português de 78 caracteres empurra o bloco do
 evento pra baixo da dobra, principalmente no celular.

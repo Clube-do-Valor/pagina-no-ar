@@ -1,8 +1,8 @@
 # impeccable na prática
 
-Leia quando a mão passar do andaime pro visual: bloco 3 da aula (o `init`), bloco 4 (o sorteio) e bloco
-5 (o refinamento). E leia antes de qualquer publicação, porque o gate do inject do `live` está aqui
-embaixo e é a única falha da aula que não dá erro na tela. Todas as citações são **número de linha** do
+Leia na **Fase 3**, quando a mão passar do desenho pro código, e leia antes de qualquer publicação,
+porque o gate do inject do `live` está aqui embaixo e é a única falha desta pilha que não dá erro na
+tela. Todas as citações são **número de linha** do
 `reference/new-work.md` do impeccable (107 linhas, 7 seções): "linha 71" é conferível, "§71" não existe.
 
 ## O que é, e por que ele é a resposta exata da tese da aula
@@ -35,7 +35,7 @@ todo mundo. O primeiro lugar dele é a média, então o dado vem de fora. São d
 de **estrutura** (`--scope surface`, a linha 39 acima) e um de **direção visual** (`--scope direction`,
 linha 46, que chama o dado de *"the mechanism that keeps every run from converging on the category
 default"* e diz que esse passo não tem substituto nem condição de pulo). Na aula o sorteio aparece uma
-vez, no bloco 4, na máquina do BJ, com os insumos de um voluntário. É ensino, não entregável.
+vez, como demonstração, na máquina de quem está conduzindo. É ensino, não entregável.
 
 ## `init`: o negócio da pessoa entra aqui
 
@@ -52,7 +52,7 @@ preservado (nome, logo, os hex da marca se você souber, prova que você já tem
 `PRODUCT.md` na pasta, que é verdade de produto e não de design: o `init` **não pergunta cor, fonte nem
 estilo, de propósito**. A parte visual vem depois.
 
-Gate do bloco 3: **abra o `PRODUCT.md` e leia.** Se ele descreve um negócio genérico em vez do seu, a
+Gate: **abra o `PRODUCT.md` e leia.** Se ele descreve um negócio genérico em vez do seu, a
 entrevista foi respondida no piloto automático e a página vai sair genérica junto.
 
 ## A regra mais importante deste arquivo: recuse o `/impeccable document`
@@ -76,14 +76,16 @@ torneio nenhum, até firma a herança. O dano é outro, e a doc nomeia na linha 
 > *"a rulebook written before the build gets defended against reality instead of describing it"*
 
 Um `DESIGN.md` gerado agora descreve o **template genérico**, que é o ponto de partida que você vai
-começar a dobrar pra sua marca dez minutos depois. Você passaria o bloco 5 brigando com um documento
+começar a dobrar pra sua marca dez minutos depois. Você passaria a Fase 3 brigando com um documento
 que descreve de onde você saiu. É um "não" de dez segundos que economiza vinte minutos.
 **`DESIGN.md` se escreve no fim, a partir do que foi construído** (linha 107), e nesta aula ele é
 **dever de casa**, não etapa.
 
 ## Quando pedir `redesign`, e quando não pedir
 
-O template nasce com mundo visual comprometido e **sem** `DESIGN.md`, de propósito: é isso que faz o
+Quando você chega aqui, a página **já tem mundo visual comprometido** e **não tem** `DESIGN.md`. Na
+Fase 2 esse mundo veio do Claude Design e foi reconstruído em cima do template; quem pular a Fase 2
+herda o mundo que o próprio template já traz. Nos dois casos vale a mesma coisa, e é isso que faz o
 impeccable herdar em vez de abrir torneio. Linha 10, *"A missing DESIGN.md does not erase a coherent
 identity already present in code"*; linha 14, *"A section, component, feature, or state inside an
 established surface inherits that surface"*; e a linha 31 manda **não** rodar torneio numa extensão.
@@ -110,11 +112,20 @@ Regra de condução: **uma dimensão por rodada, uma seção por vez.** Pedido c
 | `/impeccable colorize` | cor com estratégia, em cima dos tokens `--ink` e `--signal` | muda o arquivo |
 | `/impeccable bolder` | quando a página ficou correta e sem graça | muda o arquivo, e é o que mais reescreve |
 | `/impeccable live` | clicar no elemento no browser e escolher entre variantes | muda o arquivo, **e injeta script. Veja o gate abaixo** |
-| `/impeccable critique` | revisão de UX com achados | **não muda nada**, devolve lista |
-| `/impeccable audit` | acessibilidade, performance, responsivo | **não muda nada**, devolve lista |
+| `/impeccable critique` | revisão de UX com achados | **não toca no HTML**, devolve lista, e grava um snapshot em `.impeccable/critique/`. É o mais caro dos dois: roda dois sub-agentes em paralelo |
+| `/impeccable audit` | acessibilidade, performance, responsivo | **não grava nada**, devolve lista. É o barato |
 
-Se você rodar `critique` ou `audit` e a página continuar igual, não quebrou nada: os dois são leitura,
-não conserto. **A linha que vai junto de todo pedido visual.** Os comandos de refino reescrevem componente. Linha 89,
+Se você rodar `critique` ou `audit` e a página continuar igual, não quebrou nada: nenhum dos dois
+conserta o que acha. O `audit` não escreve nada em lugar nenhum; o `critique` não toca no seu HTML,
+mas deixa o relatório em `.impeccable/critique/<data>__<alvo>.md`, o que é bom (dá pra reler) e não é
+"não muda nada".
+
+> **Rode os dois no ARQUIVO, nunca na URL publicada.** O requisito pra alvo URL não é ter o Chrome
+> instalado, é ter o pacote **puppeteer**, e sem ele o detector devolve `[]` e sai com código **0**,
+> que é exatamente a assinatura de "limpo". Um falso-limpo, com o erro escondido no stderr. Alvo
+> arquivo roda sem depender de nada disso.
+
+**Nenhum dos dois precisa de `PRODUCT.md` nem de `DESIGN.md` pra rodar.** **A linha que vai junto de todo pedido visual.** Os comandos de refino reescrevem componente. Linha 89,
 literal: *"nav, buttons, inputs, and links are rebuilt in the form's vocabulary"*, ou seja, o formulário
 pode ser reescrito numa rodada de estética. Cole isto no fim de **todo** pedido de `typeset`, `layout`,
 `colorize`, `bolder` e de qualquer ajuste visual, e depois confira o diff:

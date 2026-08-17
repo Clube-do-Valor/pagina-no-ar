@@ -1,7 +1,8 @@
 # Anatomia da LP: onde cada pedaço da copy entra no template
 
-Leia este arquivo entre a ficha de insumos e o PORTÃO 1, quando for encaixar a copy da Função 4
-no `index.html`. Ele volta uma vez, no Portão 2, pra conferir o bloco de data.
+Leia este arquivo na **Fase 1**, pra decidir a ordem das seções, e de novo na **Fase 3**, quando
+for encaixar a copy da Função 4 no `index.html`. Ele volta uma vez, na **Fase 6**, pra conferir o
+bloco de data.
 
 ## A regra que decide o layout
 
@@ -53,7 +54,7 @@ uma rodada de estética come primeiro.
 
 ## O bloco de data, hora e fuso
 
-Este é o entregável de +10 pontos da semana 4, e é o que nenhuma das páginas de referência tem.
+Este é o entregável de +10 pontos do desafio, e é o que nenhuma das páginas de referência tem.
 Ele existe duas vezes na página (hero e formulário) e você preenche **num lugar só**, no script:
 
 ```js
@@ -83,7 +84,7 @@ pra baixo. A alavanca é **encurtar a headline**, e o teste é celular de verdad
 > Medir no ensaio de 13/08, em aparelho real, não em emulador.]
 
 O `check_page.py` bloqueia a publicação se `EVENTO.data` ou `EVENTO.hora` estiverem vazios,
-porque data pública na página é o que a semana 4 pontua.
+porque data pública na página é o que o desafio pontua.
 
 ## O que você recebe ao se inscrever
 
@@ -155,10 +156,10 @@ faz a pessoa entender **por que** a ferramenta pergunta o que pergunta, em vez d
 
 | Componente | De onde vem | Onde ele acontece na aula |
 |---|---|---|
-| `aesthetic` | o mundo visual que já vem comprometido no template, e o sorteio do impeccable, que tira a direção de um catálogo externo em vez de deixar o modelo pegar o favorito dele | bloco 4 (a demonstração do sorteio) e bloco 5 (refinamento) |
-| `reference` | os 3 prints do pré-work, cada um com legenda dizendo **qual seção** é (hero, prova, formulário). O rótulo é o que impede a referência de depoimento de virar hero | pré-work, e entra no `PRODUCT.md` que o `init` escreve no bloco 3 |
-| `intent` | a copy da Função 4 e a ficha de insumos. Uma ação só, ver acima | pré-work e PORTÃO 1 |
-| `guardrails` | os blocos INTOCÁVEL do template, as regras do detector, e as duas guardas de movimento: `prefers-reduced-motion` respeitado, e headline e formulário sem animação de entrada | template e bloco 6 |
+| `aesthetic` | o mundo visual que já vem comprometido no template, e o sorteio do impeccable, que tira a direção de um catálogo externo em vez de deixar o modelo pegar o favorito dele | Fase 2 (o desenho) e Fase 3 (a crítica) |
+| `reference` | os 3 prints do pré-work, cada um com legenda dizendo **qual seção** é (hero, prova, formulário). O rótulo é o que impede a referência de depoimento de virar hero | Fase 1, e entra no `PRODUCT.md` que o `init` escreve |
+| `intent` | a copy da Função 4 e a spec do PORTÃO 1. Uma ação só, ver acima | Fase 1 e PORTÃO 1 |
+| `guardrails` | os blocos INTOCÁVEL do template, as regras do detector, e as duas guardas de movimento: `prefers-reduced-motion` respeitado, e headline e formulário sem animação de entrada | template, e reinstalado no PORTÃO 3 |
 
 ## Quando quebra nesta camada
 

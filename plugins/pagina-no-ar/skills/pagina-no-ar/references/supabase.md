@@ -1,6 +1,6 @@
 # Supabase: o passo exato
 
-Leia no bloco 7, quando a página já está no ar e bonita e falta o dado entrar. Leia também quando alguém disser "o formulário diz obrigado mas não tem nada no banco".
+Leia na **Fase 5**, quando a página já está desenhada e falta o dado entrar. Leia também quando alguém disser "o formulário diz obrigado mas não tem nada no banco".
 
 ## A regra, antes de qualquer coisa
 
@@ -49,7 +49,9 @@ create table public.leads (
   -- escrita que fica público no HTML. Sem isso, alguém despeja 2 MB por linha.
   name          text    not null check (char_length(name)  between 1 and 120),
   email         text    not null check (char_length(email) between 3 and 180),
-  phone         text    not null check (char_length(phone) between 10 and 24),
+  -- nulável DE PROPÓSITO: quem tirar o campo (jornada sem WhatsApp) não pode
+  -- levar 400 do banco por isso. Quem exige telefone é o `required` do HTML.
+  phone         text             check (char_length(phone) between 10 and 24),
   -- backstop que NUNCA deve disparar: quem barra o usuário é o `required` do
   -- HTML, antes de qualquer requisição. Sem `default false` de propósito:
   -- default mais check se contradizem e devolvem 400 com nome de constraint.

@@ -1,11 +1,11 @@
 # Depois que o lead entra: WhatsApp, fan-out e o que fica pra depois
 
-Leia este arquivo no bloco 8 da aula (minutos 112 a 120), quando o lead já aparece no Table Editor e
+Leia este arquivo na **Fase 4**, quando decidir o destino do lead, e de novo na **Fase 5**, quando ele já aparece no Table Editor e
 falta decidir pra onde ele vai. Leia de novo em casa, porque **só a primeira parte fecha ao vivo**.
 
 | O quê | Quando | Custo |
 |---|---|---|
-| Click-to-WhatsApp (`wa.me`) | **fecha ao vivo, no bloco 8** | zero. Duas linhas no config |
+| Click-to-WhatsApp (`wa.me`) | **fecha ao vivo, na Fase 5** | zero. Duas linhas no config |
 | Database Webhook do Supabase (fan-out) | dever de casa | zero, mas exige um destino que já receba POST |
 | ManyChat com automação por keyword | dever de casa, e **só pra quem tiver Pro** | US$ 39/mês depois do trial |
 | Disparo ativo pro lead (push) | **bloqueado.** Não cabe no desafio | três portões, dias de espera |

@@ -9,14 +9,15 @@
     {
       "name": "pagina-no-ar",
       "source": "./plugins/pagina-no-ar",
-      "description": "Coloca no ar a página de inscrição do webinário: template, deploy no Vercel, captura no Supabase e saída pro WhatsApp. Não escreve a copy.",
-      "version": "0.1.0",
+      "description": "Guia completo da página de inscrição, em seis fases com portão: fundação, protótipo no Claude Design, handoff pro Claude Code com crítica do impeccable, campos que viram banco, domínio, deploy no Vercel com Supabase e a validação do que subiu.",
+      "version": "0.2.0",
       "author": {
         "name": "Julio Dall'agnol"
       },
       "license": "MIT",
       "keywords": [
         "landing-page",
+        "claude-design",
         "vercel",
         "supabase",
         "webinario",

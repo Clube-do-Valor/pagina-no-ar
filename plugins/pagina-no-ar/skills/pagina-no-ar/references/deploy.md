@@ -1,6 +1,6 @@
 # Deploy: do arquivo no seu computador pra URL pública
 
-Este arquivo é lido em dois momentos: no **bloco 1**, quando a URL nasce (a página ainda está feia, e tudo bem), e **toda vez que você for republicar** depois de mexer em alguma coisa. Se você já tem URL e só quer subir a versão nova, pula direto pro Passo 4.
+Este arquivo é lido em dois momentos: na **Fase 5**, quando a página sobe pela primeira vez, e **toda vez que você for republicar** depois de mexer em alguma coisa. Se você já tem URL e só quer subir a versão nova, pula direto pro Passo 4.
 
 Passo exato. Onde tiver bloco de código, é pra colar como está.
 
@@ -8,13 +8,13 @@ Passo exato. Onde tiver bloco de código, é pra colar como está.
 
 ## O que você vai ter no fim
 
-Uma pasta no seu computador com um arquivo `index.html` dentro, e um endereço público do tipo `https://lp-julio-webinario.vercel.app`. **Esse endereço nunca muda.** Você vai republicar essa página umas dez vezes hoje, e nas dez vezes é o mesmo link. É por isso que ele pode ir pro grupo agora, no minuto 15, com a página ainda crua.
+Uma pasta no seu computador com um arquivo `index.html` dentro, e um endereço público do tipo `https://lp-julio-webinario.vercel.app`. **Esse endereço nunca muda.** Você vai republicar essa página umas dez vezes hoje, e nas dez vezes é o mesmo link. É por isso que ele pode ir pro grupo assim que a página estiver de pé.
 
 Quem faz o quê:
 
 | Comando | Quem roda | Onde |
 |---|---|---|
-| `npx vercel login` | **você**, na mão | terminal integrado do Claude Desktop (``Ctrl+` ``, no Mac ``Cmd+` ``) |
+| `npx vercel login` | **você**, na mão | no terminal (no Claude Desktop é o integrado, ``Ctrl+` ``, no Mac ``Cmd+` ``) |
 | `npx vercel` (a primeira vez) | **você**, na mão | mesmo terminal |
 | `npx vercel --prod` (todas as outras) | **o Claude**, por frase no chat | ele roda e te devolve a URL |
 

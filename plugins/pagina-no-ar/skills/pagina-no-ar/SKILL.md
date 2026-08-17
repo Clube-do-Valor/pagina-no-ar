@@ -1,14 +1,15 @@
 ---
 name: pagina-no-ar
-description: "Coloca no ar a página de inscrição do webinário, do arquivo ao lead gravado. Use quando alguém quiser publicar, subir, deployar ou hospedar a LP de inscrição, criar o formulário de captura, ligar a página ao Supabase ou a um webhook, ou mandar o lead pro WhatsApp. NÃO escreve a copy da página, porque a copy vem pronta da Função 4 da skill do desafio, e esta skill só a coloca no ar."
+description: "Guia completo pra colocar no ar a página de inscrição do webinário, da fundação até o lead gravado no banco. Cobre público e promessa, protótipo no Claude Design, handoff pro Claude Code com crítica do impeccable, os campos do formulário que viram o banco, domínio próprio, deploy no Vercel com Supabase, a verificação de segurança e a validação do que subiu. Use quando alguém quiser criar, desenhar, revisar, publicar, subir, deployar ou hospedar a LP de inscrição, montar o formulário de captura, ligar a página ao Supabase ou a um webhook, apontar um domínio próprio, ou mandar o lead pro WhatsApp."
 ---
 
 # Página no ar
 
-Do arquivo local até um lead real no banco, em duas horas, sem terminal e sem build.
+Seis fases, seis portões. Da fundação até um lead real no banco.
 
-**Esta skill não escreve copy.** Se a pessoa ainda não tem o texto da página, ela para
-aqui e vai buscar na Função 4 da skill do desafio. Sem copy, não há o que publicar.
+**O portão é o que faz isso ser método e não lista.** Cada um só abre com uma prova
+mostrada na tela. Ninguém passa de fase porque achou que estava bom, e ninguém passa
+porque você disse que funcionou.
 
 ## Antes de tudo: onde moram os arquivos desta skill
 
@@ -39,111 +40,168 @@ copiado.** Se o `cp` falhar, resolva o caminho de novo. Um `index.html` improvis
 lugar do `assets/index-template.html` perde todas as guardas deste material de uma vez,
 e perde calado.
 
-## A ordem, e ela não é negociável
-
-Visual primeiro, dado depois. Não é preferência: a fase de design **reescreve o
-formulário inteiro**, então qualquer fio de dado plugado antes disso corre risco de
-ser reescrito em silêncio numa rodada de estética.
-
-E o dado é o que menos aguenta improviso. Duas mudanças de plataforma do Supabase em
-2026 invalidaram todo snippet decorado, inclusive o meu. Então:
+## A regra que governa o fluxo inteiro
 
 > **Na direção visual, liberdade total. Na camada de dado e no deploy, passo literal.**
 > O bloco testado é colado, não gerado.
 
-## Fluxo
+Isso não é preguiça de um lado nem rigidez do outro. Na direção visual o taste de
+mercado da pessoa vale mais que qualquer regra que eu escreva. Na camada de dado errar
+não dá aviso: dá lead perdido em silêncio, e o pior deles é a tela dizendo "inscrição
+confirmada" pra um envio que não aconteceu.
 
-### 1. Ficha de insumos, em uma rodada
+**E a ordem visual antes de dado não é preferência, é invariante.** A fase de design
+**reescreve o formulário inteiro**, então qualquer fio de dado plugado antes disso corre
+risco de ser desfeito numa rodada de estética, sem ninguém ver.
 
-Peça tudo de uma vez, numerado. Se a pessoa já disse algo, não pergunte de novo.
+## As seis fases
 
-1. o arquivo com a copy da Função 4
-2. **data, hora, duração e fuso** do webinário, já decididos
-3. marca: logo e os hex, se souber
-4. o WhatsApp de destino, com DDD
-5. o que ela quer capturar além de nome, e-mail e telefone, **e o que a página
-   devolve em troca de cada campo extra**
+### FASE 1 · Fundação, o porquê antes de qualquer tela
 
-O item 5 tem regra: campo extra só entra se a página entregar alguma coisa por ele.
-Sem contrapartida, o campo só derruba conversão.
+Nada de HTML aqui. Esta fase é **entrevista**, e o produto dela é uma spec de 15 linhas.
 
-### 2. PORTÃO 1 · spec aprovada antes de uma linha de HTML
+Use `superpowers:brainstorming` pra conduzir. É exatamente o que ele faz: explora
+intenção e requisito antes de implementação. Se ele não estiver instalado, conduza a
+entrevista à mão, com as perguntas de `references/fundacao.md`.
 
-Devolva, em no máximo 15 linhas: as seções na ordem, os campos do formulário, o texto
-do botão, e **o que acontece depois que a pessoa envia**. Espere o "pode ir".
+Sete coisas saem daqui, e o detalhe de cada uma está em `references/fundacao.md`:
+
+1. quem é o público, na situação real dele
+2. o objetivo da página, e é **uma ação só**
+3. a promessa, na frase da pessoa e não na do setor
+4. o gancho: como a primeira tela chama atenção
+5. identidade visual: logo, e os hex se ela tiver
+6. **3 páginas em que ela mesma se inscreveu**, com o rótulo do que gostou em cada
+7. quais perguntas o lead responde, **e o que a página devolve por cada campo**
+
+O item 6 é o que faz dez páginas ficarem diferentes umas das outras, e o item 7 é o que
+vira o banco na Fase 4. Nenhum dos dois é opcional.
+
+**PORTÃO 1.** Devolva a spec em no máximo 15 linhas: as seções na ordem, os campos do
+formulário, o texto do botão, e **o que acontece depois que a pessoa envia**. Espere o
+"pode ir".
 
 Quem não souber responder o que acontece depois do envio ainda não tem página. Isso
 aparece em segundos e é o melhor instrumento de triagem que existe.
 
-### 3. A URL nasce antes do design
+### FASE 2 · Prototipação, o desenho nasce no Claude Design
 
-```bash
-cp <SKILL>/assets/index-template.html ./index.html
+O desenho é feito **no Claude Design**, no navegador, não no código. Uma seção por
+rodada, começando pelo hero, porque paleta, tipografia e clima do resto derivam dele.
+
+Ver `references/claude-design.md`, que traz o que é um `.dc.html`, como tirar o arquivo
+de lá, e as sete armadilhas do handoff. **Todas as sete falham caladas**, com a página
+parecendo pronta na tela.
+
+**PORTÃO 2.** O hero está aprovado **e** o arquivo do desenho está no disco da pessoa.
+As duas metades, porque desenho aprovado que não saiu da prancheta não é entregável.
+
+### FASE 3 · Handoff pro Claude Code, e a primeira crítica
+
+O desenho vira página de verdade aqui. **Reconstrua em cima do `assets/index-template.html`**,
+que já traz o formulário endurecido, e trate o `.dc.html` como **especificação e fonte de
+copy**, não como arquivo de publicação. O porquê está em `references/claude-design.md`,
+e é medido: são 307 KB de runtime pra rodar 15 KB de lógica.
+
+Depois de reconstruir, uma rodada de crítica:
+
+```text
+/impeccable audit index.html
+```
+```text
+/impeccable critique index.html
 ```
 
-O destino é `index.html` **na raiz da pasta do projeto da pessoa**, e vai sem alterar
-nada. Ver `references/deploy.md` para os comandos literais de publicação.
+**Rode nos dois no ARQUIVO, nunca na URL publicada.** Alvo URL sem o puppeteer
+instalado devolve `[]` e sai com código 0, que é exatamente a assinatura de "limpo": um
+falso-limpo, com o erro escondido no stderr. Detalhe em `references/impeccable-na-pratica.md`.
 
-O entregável deste passo é a **URL existir**, não o conteúdo dela. Editar a headline
-antes de subir parece natural e é armadilha: adiciona um passo que depende de cada
-pessoa acertar antes de existir prova de vida.
+Quando os achados voltarem, use `superpowers:receiving-code-review`. Uma lista de doze
+achados não se implementa de olhos fechados: cada um se verifica antes de virar mudança.
+Concordar por educação com um achado errado piora a página.
 
-Copie também a config do `live` mode pra dentro do projeto da pessoa, o que economiza
-uma etapa de setup se o refinamento visual usar o `live`:
+Corrija **em um lote** e confira o diff.
 
-```bash
-mkdir -p .impeccable/live && cp <SKILL>/assets/impeccable-live-config.json .impeccable/live/config.json
-```
-
-### 4. O visual, e aqui a skill sai da frente
-
-O trabalho visual é do impeccable. Ver `references/impeccable-na-pratica.md`.
-
-Você só reinstala duas guardas, depois de cada rodada:
+**PORTÃO 3.** Os achados foram **corrigidos**, não só lidos. E depois de cada rodada
+visual você reinstala duas guardas:
 
 - `prefers-reduced-motion` respeitado
 - **headline e formulário sem animação de entrada** (a página recebe tráfego pago, e
   animação de entrada atrasa conteúdo e derruba conversão)
 
-Uma direção por rodada, uma seção por vez. Ninguém passa da primeira seção antes do
-hero estar aprovado, porque paleta, tipografia e clima do resto derivam dele.
+### FASE 4 · As três definições antes de subir
 
-### 5. O dado
+Três decisões, e nenhuma delas é código. Elas travam o que vem depois.
 
-Ver `references/supabase.md` e colar o SQL de lá **inteiro, sem adaptar**. Depois
-`references/formulario-e-dados.md` para o modelo de dado e o consentimento.
+**1. Os campos do formulário, porque as perguntas SÃO o banco.** A regra que resolve a
+discussão inteira: **campo extra só entra se a página devolver alguma coisa por ele.**
+Formulário de inscrição não é cadastro. Ver `references/formulario-e-dados.md`.
+
+**2. O domínio próprio.** Ver `references/dominio.md`. Aviso de escopo que precisa ser
+dito na hora: **comprar domínio não cabe numa aula.** O registro sai em 5 minutos, mas a
+edição de DNS só destrava depois do pagamento cair, a propagação leva até 1 hora, e o
+TLS vem só depois disso. A URL `.vercel.app` já é entregável, e ela é permanente.
+
+**3. Pra onde o lead vai depois do botão.** O default é click-to-WhatsApp, que funciona
+com zero conta em qualquer outra ferramenta. Webhook, bot e ManyChat estão em
+`references/pos-captura.md`.
+
+**PORTÃO 4.** As três estão escritas, não combinadas de cabeça. Se a pessoa não
+consegue dizer os campos em voz alta, a Fase 5 vai criar a tabela errada.
+
+### FASE 5 · Deploy: banco, Vercel e segurança
+
+Aqui o passo é literal. **Duas mudanças de plataforma do Supabase em 2026 invalidaram
+todo snippet decorado, inclusive o meu.** Cole o SQL de `references/supabase.md`
+**inteiro, sem adaptar**.
 
 **Avise antes que vai falhar.** O primeiro envio não chega em 100% das ocorrências
 filmadas. Isso é esperado, não é vergonha, e a frase de conserto está em
-`references/quando-quebra.md`.
+`references/quando-quebra.md`. Rode o `curl` de pré-flight você mesmo e leia o status:
+não peça pra pessoa fazer gesto que você consegue executar.
 
-Rode o `curl` de pré-flight você mesmo e leia o status. Não peça pra pessoa fazer
-gesto que você consegue executar.
+Depois o deploy, com `references/deploy.md`. `vercel --prod`. A URL de produção é sempre
+a mesma, então ela vai pro grupo com todas as letras.
 
-### 6. PORTÃO 2 · QA antes de publicar
+E a verificação de segurança, que é `references/seguranca.md` mais o script:
 
 ```bash
 python3 <SKILL>/scripts/check_page.py index.html
 ```
 
 Se der `No such file`, o `<SKILL>` não foi substituído pelo caminho por extenso. Resolva
-de novo pela primeira seção. Não pule o Portão 2 por causa disso.
+de novo pela primeira seção. Não pule o portão por causa disso.
 
-Ele sai com código 1 se houver bloqueio. Some a isso `references/antes-de-publicar.md`,
-que cobre o que o script não vê. Os dois itens que fecham de verdade:
+> **Não mande ninguém rodar `/security-review` aqui.** Ele exige repositório git, e a
+> pasta da pessoa não é um. Fora de um repo ele não faz revisão nenhuma: devolve um
+> recado dizendo que precisa de git e nunca carrega o prompt de revisão. `git init`
+> também não resolve, e mesmo com git ele audita **diff** e foi instruído a ignorar o
+> que já existe, então nunca olharia um `index.html` pronto. O porquê medido está em
+> `references/seguranca.md`.
+
+**PORTÃO 5.** Um lead de teste **aparecendo no Table Editor**. A mensagem de obrigado
+não prova nada: ela aparece igual quando o envio não saiu.
+
+Mais os dois que fecham de verdade:
 
 - **grep por `8400` volta vazio** (o inject do `live` mode não dá erro nenhum no ar)
-- **um lead de teste aparecendo no Table Editor** (a mensagem de obrigado não prova nada)
+- **`Ctrl+U` na página publicada** e a chave que aparece começa com `sb_publishable_`
 
-### 7. Publica e registra a URL canônica
+### FASE 6 · Validação visual do que subiu
 
-`vercel --prod`. A URL de produção é sempre a mesma, então ela vai pro grupo com
-todas as letras. Registre-a onde a pessoa vá achar depois.
+Não é olhar o arquivo local. É olhar **o que está no ar**.
 
-### 8. Pós-captura
+Use `superpowers:verification-before-completion` como disciplina desta fase: evidência
+antes de afirmação, sempre. Três coisas, e nenhuma delas é opinião:
 
-`references/pos-captura.md`. O default é click-to-WhatsApp, que funciona com zero
-conta no ManyChat. Feche perguntando o que ficou fraco e o que vira dever de casa.
+1. a URL de produção aberta **em aba anônima** (a sua tem cache e mente)
+2. **no celular de verdade**, não no simulador de tamanho do navegador
+3. **um lead enviado pela página no ar**, e você abrindo o banco pra ver a linha
+
+Feche com `references/antes-de-publicar.md`, que cobre o que o script não vê: um fold,
+uma mensagem, data visível sem rolar.
+
+**PORTÃO 6.** Você **mostrou** a tela. Dizer que funcionou não vale.
 
 ## Regras que valem o fluxo inteiro
 
@@ -162,21 +220,33 @@ rodada de estética os reescrever, restaure. `check_page.py` detecta.
 **Sem inventar.** Não escreva número, prova, depoimento ou claim que a pessoa não deu.
 Marque `[FALTA: ...]`, que é a convenção que ela já usa na Função 4.
 
+**Quando quebrar, não chute.** Use `superpowers:systematic-debugging` e o catálogo de
+sintomas de `references/quando-quebra.md`, que já tem a causa e a frase de conserto de
+cada falha conhecida desta pilha.
+
+**A copy da página não é assunto desta skill.** A Fase 1 produz a fundação (promessa,
+gancho, público), e o texto das seções vem pronto da Função 4 da skill do desafio. Se a
+pessoa chegar sem a copy, a Fase 1 é onde isso aparece.
+
 ## Arquivos
 
 Todos relativos ao diretório da skill (o `<SKILL>` da primeira seção), nunca ao `cwd` da pessoa.
 
-| Arquivo | Quando ler |
-|---|---|
-| `references/anatomia-da-lp.md` | montando a estrutura da página |
-| `references/impeccable-na-pratica.md` | antes de qualquer trabalho visual |
-| `references/formulario-e-dados.md` | decidindo campos, consentimento, modelo de dado |
-| `references/supabase.md` | criando a tabela e ligando o formulário |
-| `references/deploy.md` | publicando, e sempre que a URL não abrir |
-| `references/quando-quebra.md` | qualquer coisa que não funcionou |
-| `references/pos-captura.md` | mandando o lead pro WhatsApp ou pra outro destino |
-| `references/antes-de-publicar.md` | no Portão 2, sempre |
-| `assets/index-template.html` | ponto de partida obrigatório, nunca gere do zero |
-| `assets/impeccable-live-config.json` | copiar pra `.impeccable/live/config.json` |
-| `scripts/check_page.py` | Portão 2 |
-| `scripts/probe_page.mjs` | verificação profunda, opcional: roda o formulário e mede contraste, dobra e alinhamento no Chrome headless. Precisa de Chrome instalado, então é ferramenta de quem construiu, não do participante |
+| Arquivo | Fase | Quando ler |
+|---|---|---|
+| `references/fundacao.md` | 1 | conduzindo a entrevista e fechando a spec |
+| `references/anatomia-da-lp.md` | 1 e 3 | montando a estrutura e a ordem das seções |
+| `references/claude-design.md` | 2 e 3 | prototipando, e antes de trazer o arquivo pro código |
+| `references/impeccable-na-pratica.md` | 3 | antes de qualquer trabalho visual |
+| `references/formulario-e-dados.md` | 4 | decidindo campos, consentimento, modelo de dado |
+| `references/dominio.md` | 4 | apontando domínio próprio, ou decidindo não apontar |
+| `references/pos-captura.md` | 4 e 5 | mandando o lead pro WhatsApp ou pra outro destino |
+| `references/supabase.md` | 5 | criando a tabela e ligando o formulário |
+| `references/deploy.md` | 5 | publicando, e sempre que a URL não abrir |
+| `references/seguranca.md` | 5 | na verificação de segurança, sempre |
+| `references/antes-de-publicar.md` | 5 e 6 | nos Portões 5 e 6 |
+| `references/quando-quebra.md` | 3 a 6 | qualquer coisa que não funcionou |
+| `assets/index-template.html` | 3 | ponto de partida obrigatório, nunca gere do zero |
+| `assets/impeccable-live-config.json` | 3 | copiar pra `.impeccable/live/config.json` |
+| `scripts/check_page.py` | 5 | Portão 5 |
+| `scripts/probe_page.mjs` | 6 | verificação profunda, opcional: roda o formulário e mede contraste, dobra e alinhamento no Chrome headless. Precisa de Chrome instalado, então é ferramenta de quem construiu, não do participante |
