@@ -25,7 +25,7 @@ O Postgres confere o GRANT **primeiro** e nega antes de olhar a policy. Ou seja:
 
 ## Passo 1: o projeto
 
-Pré-work, não é aula. Projeto **provisionado antes de segunda**, região **São Paulo**, porque
+Isso é preparação, não é aula. Projeto **provisionado antes**, região **São Paulo**, porque
 provisionar demora e demorar ao vivo é caro. Se o painel disser que bateu o limite de projetos, a saída
 é **criar uma organização nova** e o projeto dentro dela. [CONFIRMAR no ensaio de 13/08: o limite no
 free parece ser por organização e não por conta; e projeto free pausa por inatividade, e pausado ele

@@ -157,7 +157,7 @@ faz a pessoa entender **por que** a ferramenta pergunta o que pergunta, em vez d
 | Componente | De onde vem | Onde ele acontece na aula |
 |---|---|---|
 | `aesthetic` | o mundo visual que já vem comprometido no template, e o sorteio do impeccable, que tira a direção de um catálogo externo em vez de deixar o modelo pegar o favorito dele | Fase 2 (o desenho) e Fase 3 (a crítica) |
-| `reference` | os 3 prints do pré-work, cada um com legenda dizendo **qual seção** é (hero, prova, formulário). O rótulo é o que impede a referência de depoimento de virar hero | Fase 1, e entra no `PRODUCT.md` que o `init` escreve |
+| `reference` | os 3 prints de páginas de webinário em que a pessoa **ela mesma** se inscreveu, cada um com legenda dizendo **qual seção** é (hero, prova, formulário). O rótulo é o que impede a referência de depoimento de virar hero | Fase 1, e entra no `PRODUCT.md` que o `init` escreve |
 | `intent` | a copy da Função 4 e a spec do PORTÃO 1. Uma ação só, ver acima | Fase 1 e PORTÃO 1 |
 | `guardrails` | os blocos INTOCÁVEL do template, as regras do detector, e as duas guardas de movimento: `prefers-reduced-motion` respeitado, e headline e formulário sem animação de entrada | template, e reinstalado no PORTÃO 3 |
 

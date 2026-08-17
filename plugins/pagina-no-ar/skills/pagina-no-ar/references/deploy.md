@@ -83,7 +83,7 @@ Vercel CLI 58.9.3 (Node.js 22.22.2)
 ⠋ Waiting for authentication...
 ```
 
-Ou seja: abre `vercel.com/device` no navegador, digita **o código que apareceu no seu terminal** (oito caracteres com um hífen no meio, o `SVCL-FDLD` acima é só exemplo) e confirma. Se o navegador pedir login, entra **pelo GitHub**, que é a conta que o pré-work pediu. O terminal sai sozinho do "Waiting for authentication" quando você confirma.
+Ou seja: abre `vercel.com/device` no navegador, digita **o código que apareceu no seu terminal** (oito caracteres com um hífen no meio, o `SVCL-FDLD` acima é só exemplo) e confirma. Se o navegador pedir login, entra **pelo GitHub**, que é a conta dos pré-requisitos do README. O terminal sai sozinho do "Waiting for authentication" quando você confirma.
 
 Não fecha o terminal enquanto ele espera. E não digita o código de outra pessoa: cada terminal gera o seu.
 

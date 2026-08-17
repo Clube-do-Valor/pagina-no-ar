@@ -3,3 +3,8 @@ node_modules/
 .impeccable/
 *.log
 .DS_Store
+
+# Material de condução interna. Este repo é público, então fica no disco local.
+# Não reincluir sem revisar o conteúdo.
+PRE-WORK.md
+aula/abertura.md

@@ -137,8 +137,8 @@ Não mexa nos blocos marcados INTOCÁVEL. Mantenha o prefers-reduced-motion, e h
 ## Os dois gotchas, escritos literalmente
 
 **1. `npx impeccable install --help` ignora o `--help` e roda o instalador.** Quem é cauteloso e pede
-ajuda antes de instalar é exatamente quem vai ser mordido. Não invente flag: cole a linha que veio no
-pré-work, exatamente como veio.
+ajuda antes de instalar é exatamente quem vai ser mordido. Não invente flag: cole `npx impeccable install`
+exatamente assim, como está no README.
 
 **2. O detector não imprime nada quando está limpo.** Saída vazia é ambígua: pode ser "passou" ou "não
 rodou no arquivo certo".

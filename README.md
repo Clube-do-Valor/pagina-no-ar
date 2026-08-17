@@ -7,9 +7,53 @@ Feito para o encontro **"Página no ar: deploy no Vercel com Claude"** do Desafi
 Webinário Perfeito em 50 Dias (Clube de Aceleração de Negócios · Clube do Valor),
 17/08/2026.
 
+## Antes de instalar
+
+Esta skill não é auto-suficiente. Ela conduz um método que usa ferramentas de
+fora, e chamar `/impeccable audit` na Fase 3 sem tê-lo instalado falha ali, com o
+plugin inteiro parecendo instalado e funcionando até aquele ponto.
+
+**Conta do GitHub é o pré-requisito zero.** Não é opcional e não é só pra baixar
+este repo:
+
+- o `/plugin marketplace add` lê este repo do GitHub;
+- **o login do Vercel é pelo GitHub.** Entrar com Google costuma travar em conta
+  de empresa, com um `admin_policy_enforced` que você não tem como resolver
+  sozinho. Com GitHub funciona sempre;
+- o deploy contínuo, se você quiser depois, é o Vercel olhando um repo seu.
+
+Sem conta do GitHub você não chega na Fase 5.
+
+### O que instalar
+
+| | O quê | Onde | Por quê |
+|---|---|---|---|
+| 1 | **Claude Code**, com plano **Pro ou Max** | `claude.com/download` | `/plugin` é do Claude Code. No chat do claude.ai ele não existe. O plano **gratuito não dá acesso** ao Claude Code |
+| 2 | **Node.js** LTS (v22+) | `nodejs.org` | o instalador do impeccable e os scripts de verificação rodam nele |
+| 3 | **Git** | `git-scm.com` | no Windows não vem por padrão |
+
+### O que criar
+
+| | O quê | Detalhe que economiza dor de cabeça |
+|---|---|---|
+| 4 | **Conta no GitHub** | `github.com`. **Crie primeiro**, porque as próximas usam ela |
+| 5 | **Vercel**, entrando **com o GitHub** | não entre com o Google, veja acima |
+| 6 | **Supabase**, com o projeto **já criado**, região São Paulo | criar o projeto leva alguns minutos. Só a Fase 5 usa, mas deixe pronto antes |
+| 7 | Acesso ao **Claude Design** | a Fase 2 nasce lá. Sem ele, dá pra pular direto pro template e seguir |
+
 ## Instalar
 
-Dentro do Claude Code:
+Três blocos, dentro do Claude Code, nesta ordem. Os dois primeiros são as
+ferramentas de fora que a skill chama pelo nome:
+
+```
+npx impeccable install
+```
+
+```
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+```
 
 ```
 /plugin marketplace add Clube-do-Valor/pagina-no-ar
@@ -17,6 +61,13 @@ Dentro do Claude Code:
 ```
 
 Se o resumo da instalação pedir, rode `/reload-plugins`.
+
+### Conferir que ficou pronto
+
+Digite `/` e confira que aparecem os três na lista: **`impeccable`**,
+**`superpowers`** e **`pagina-no-ar`**. Se um deles não aparece, ele não vai
+disparar quando a skill pedir, e o modo de falhar é silencioso: a skill segue e o
+comando simplesmente não faz nada.
 
 ## As seis fases
 
@@ -44,6 +95,22 @@ texto das seções vem pronto da Função 4 da skill do desafio.
 | `references/` | doze arquivos, da entrevista de fundação ao catálogo de falhas caladas |
 | `scripts/check_page.py` | Portão 5: o que conferir antes de publicar |
 | `scripts/probe_page.mjs` | verificação profunda no Chrome headless |
+
+### As duas páginas de conversão não são a mesma página
+
+O `assets/index-template.html` é a **página de inscrição do webinário**: ela
+converte atenção em inscrito, e a única coisa que pede é o contato. Preço não
+aparece, objeção não é tratada, e a decisão que ela pede é pequena.
+
+Depois do webinário vem **outra** página, a **de venda do serviço**, e ela é um
+animal diferente: precisa tratar objeção, sustentar valor, mostrar prova de
+entrega e pedir uma decisão que custa dinheiro.
+
+As duas usam o mesmo método das seis fases, e é por isso que este repo guarda
+exemplo dos dois tipos em vez de um só. Trocar um pelo outro é o erro comum: a
+página de inscrição fica pesada e assusta antes da hora, ou a página de venda fica
+leve e não vende. **Confira em qual das duas você está antes da Fase 1**, porque a
+resposta muda o público, a promessa e quais perguntas o formulário faz.
 
 Três coisas que a v0.2.0 traz e que valem ser ditas em voz alta, porque as três
 foram medidas e as três contrariam o que parecia certo:
